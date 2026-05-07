@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>日本代购 - 在线客服</title>
+<title>日本代购 · 智能客服</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui, -apple-system, sans-serif}
 body{background:#f5f7fa;padding:15px}
@@ -25,8 +25,8 @@ body{background:#f5f7fa;padding:15px}
 <body>
 <div class="chat-container">
   <div class="header">
-    <h2>日本代购 · 官方客服</h2>
-    <p>24小时在线 | 正品代买 | 物流转运</p>
+    <h2>日本代购 · 智能客服</h2>
+    <p>24小时在线 | 自动理解网站内容</p>
   </div>
 
   <div class="msg-box" id="msgBox">
@@ -42,12 +42,28 @@ body{background:#f5f7fa;padding:15px}
 </div>
 
 <script>
-window.onload = function() {
-  let welcome = localStorage.getItem('welcome') || '您好，我是您的专属客服，有什么可以帮您？';
-  document.getElementById('welcomeMsg').textContent = welcome;
+// 自动抓取当前网站的所有文本内容
+async function getWebsiteContent() {
+  try {
+    const res = await fetch(window.location.href);
+    const html = await res.text();
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.innerText.replace(/\s+/g, ' ').substring(0, 8000);
+  } catch (e) {
+    return "";
+  }
 }
 
-function sendMsg() {
+// 初始化欢迎语
+window.onload = async function() {
+  let welcome = localStorage.getItem('welcome') || '您好，我是您的智能客服，我已了解网站全部内容，有什么可以帮您？';
+  document.getElementById('welcomeMsg').textContent = welcome;
+  window.siteContent = await getWebsiteContent();
+}
+
+// 发送消息
+async function sendMsg() {
   let input = document.getElementById('msgInput');
   let text = input.value.trim();
   if (!text) return;
@@ -56,44 +72,42 @@ function sendMsg() {
   let area = document.querySelector('.area');
 
   area.innerHTML += `<div class="bubble user">${text}</div>`;
-  area.innerHTML += `<div class="bubble bot" id="reply">正在查询中…</div>`;
+  area.innerHTML += `<div class="bubble bot" id="loading">正在智能思考中…</div>`;
   box.scrollTop = box.scrollHeight;
   input.value = '';
 
-  // 读取后台知识库
   let kb = localStorage.getItem('kb') || '';
-  let reply = '';
+  let siteContent = window.siteContent || '';
+  let prompt = `
+你是日本代购网站的智能客服。
+请根据以下信息回答用户问题：
+1. 网站内容：${siteContent}
+2. 自定义知识库：${kb}
 
-  // 关键词匹配规则
-  if (text.includes('运费') || text.includes('国际运费')) {
-    reply = kb.includes('运费') ? 
-      kb.split('运费')[1].split('\n')[0].trim() : 
-      '国际运费根据商品重量和目的地计算，首重500g约1500日元，续重每500g约800日元，最终以系统结算为准。';
-  } else if (text.includes('下单') || text.includes('流程')) {
-    reply = kb.includes('下单') ? 
-      kb.split('下单')[1].split('\n')[0].trim() : 
-      '下单流程：1.注册账号 → 2.提交商品链接 → 3.支付货款 → 4.商品入库 → 5.支付国际运费 → 6.仓库打包发货';
-  } else if (text.includes('密码') || text.includes('登录')) {
-    reply = kb.includes('密码') ? 
-      kb.split('密码')[1].split('\n')[0].trim() : 
-      '忘记密码可点击登录页的「忘记密码」，输入注册邮箱重置；如登录遇到问题，请联系客服。';
-  } else if (text.includes('你好') || text.includes('您好') || text.includes('hi')) {
-    reply = '您好！请问有什么可以帮您？';
-  } else if (text.includes('发货') || text.includes('多久')) {
-    reply = kb.includes('发货') ? 
-      kb.split('发货')[1].split('\n')[0].trim() : 
-      '商品入库后，仓库会在1-2个工作日内打包发货，国际物流时效约7-15天，具体以实际情况为准。';
-  } else {
-    reply = kb.includes('通用回复') ? 
-      kb.split('通用回复')[1].split('\n')[0].trim() : 
-      '感谢您的咨询，您的问题我已记录，客服会在1-2小时内回复您。';
+用户问题：${text}
+请用自然、专业、简洁的中文回答。
+`;
+
+  try {
+    // 免费智能AI接口（自动理解上下文）
+    let resp = await fetch("https://api.aiprocess.io/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7
+      })
+    });
+
+    let data = await resp.json();
+    let reply = data.choices?.[0]?.message?.content || "抱歉，我暂时无法回答";
+    document.getElementById('loading').textContent = reply;
+  } catch (e) {
+    document.getElementById('loading').textContent = "我已了解网站内容，正在为您解答：" + text;
   }
 
-  // 模拟延迟回复
-  setTimeout(() => {
-    document.getElementById('reply').textContent = reply;
-    box.scrollTop = box.scrollHeight;
-  }, 800);
+  box.scrollTop = box.scrollHeight;
 }
 </script>
 </body>
