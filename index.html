@@ -1,136 +1,73 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Test Page</title>
-</head>
-<body>
-    <h1><!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>客服系统</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Microsoft YaHei", sans-serif;
-        }
-
-        body {
-            background-color: #f5f7fa;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-            padding: 25px;
-        }
-
-        .title {
-            text-align: center;
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 25px;
-            font-weight: bold;
-        }
-
-        .info-box {
-            background: #f8f9fa;
-            border-left: 4px solid #007bff;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 6px;
-        }
-
-        .info-box p {
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 8px;
-        }
-
-        .btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            flex: 1;
-            min-width: 160px;
-            padding: 14px 20px;
-            background: #007bff;
-            color: white;
-            text-align: center;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            text-decoration: none;
-            transition: background 0.3s;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn:hover {
-            background: #0056b3;
-        }
-
-        .btn-whatsapp {
-            background: #25d366;
-        }
-
-        .btn-whatsapp:hover {
-            background: #1da851;
-        }
-
-        .btn-telegram {
-            background: #0088cc;
-        }
-
-        .btn-telegram:hover {
-            background: #006699;
-        }
-
-        .tip {
-            margin-top: 25px;
-            color: #888;
-            font-size: 14px;
-            text-align: center;
-            line-height: 1.5;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI客服后台管理</title>
+<style>
+body{margin:0;padding:20px;background:#f5f7fa;}
+.box{max-width:800px;margin:0 auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 0 15px #00000010;}
+h3{margin-top:0;color:#333;}
+textarea,input{width:100%;box-sizing:border-box;padding:10px;border:1px #ddd solid;border-radius:6px;margin:8px 0;font-size:14px;}
+textarea{height:120px;resize:vertical;}
+button{padding:10px 20px;background:#6B46E4;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-right:10px;}
+.logout{background:#999;}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="title">日本代购 客服中心</div>
+<div class="box">
+  <h3>火山API配置</h3>
+  <input type="text" id="ak" placeholder="Access Key ID">
+  <input type="text" id="sk" placeholder="Secret Access Key">
+  <input type="text" id="apiUrl" placeholder="接口地址">
+  <input type="text" id="model" placeholder="模型名称">
+  <button onclick="saveApi()">保存配置</button>
 
-        <div class="info-box">
-            <p>📌 24小时在线客服</p>
-            <p>📌 日本商品代买、代拍、代发货</p>
-            <p>📌 正品保证 | 快速物流 | 售后无忧</p>
-        </div>
+  <h3>自定义知识库（给AI喂资料）</h3>
+  <textarea id="kb" placeholder="在这里输入：日本代购规则、转运运费、时效、禁运品、汽配规则、售后话术等"></textarea>
+  <button onclick="saveKb()">保存知识库</button>
 
-        <div class="btn-group">
-            <a class="btn btn-whatsapp" href="https://wa.me/你的号码" target="_blank">
-                💬 WhatsApp 联系
-            </a>
-            <a class="btn btn-telegram" href="https://t.me/你的用户名" target="_blank">
-                📩 Telegram 联系
-            </a>
-        </div>
+  <h3>欢迎语设置</h3>
+  <input type="text" id="welcome" placeholder="客服开场欢迎语">
+  <button onclick="saveWelcome()">保存欢迎语</button>
 
-        <div class="tip">
-            工作时间：全天24小时在线<br>
-            看到消息后会第一时间回复您
-        </div>
-    </div>
-</body>
-</html></h1>
+  <br><br>
+  <button class="logout" onclick="logout()">退出登录</button>
+</div>
+
+<script>
+// 登录校验
+if(!localStorage.getItem('isLogin'))location.href='login.html';
+
+// 初始化加载
+window.onload=function(){
+  document.getElementById('ak').value=localStorage.getItem('ak')||'';
+  document.getElementById('sk').value=localStorage.getItem('sk')||'';
+  document.getElementById('apiUrl').value=localStorage.getItem('apiUrl')||'';
+  document.getElementById('model').value=localStorage.getItem('model')||'';
+  document.getElementById('kb').value=localStorage.getItem('kb')||'';
+  document.getElementById('welcome').value=localStorage.getItem('welcome')||'您好，我是专属客服，有任何日本代购转运问题都可以咨询我~';
+}
+
+function saveApi(){
+  localStorage.setItem('ak',document.getElementById('ak').value);
+  localStorage.setItem('sk',document.getElementById('sk').value);
+  localStorage.setItem('apiUrl',document.getElementById('apiUrl').value);
+  localStorage.setItem('model',document.getElementById('model').value);
+  alert('火山API配置已保存');
+}
+function saveKb(){
+  localStorage.setItem('kb',document.getElementById('kb').value);
+  alert('知识库已保存，AI将按你录入的内容回答');
+}
+function saveWelcome(){
+  localStorage.setItem('welcome',document.getElementById('welcome').value);
+  alert('欢迎语已保存');
+}
+function logout(){
+  localStorage.removeItem('isLogin');
+  location.href='login.html';
+}
+</script>
 </body>
 </html>
