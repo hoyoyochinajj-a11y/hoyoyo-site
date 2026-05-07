@@ -72,17 +72,20 @@ async function sendMsg() {
   }
 
   try {
-    let auth = btoa(ak + ":" + sk);
-    let res = await fetch(apiUrl, {
-      method: "POST",
+    const auth = btoa(`${ak}:${sk}`);
+    const proxyUrl = 'https://api.allorigins.win/raw?url=';
+    const targetUrl = encodeURIComponent(apiUrl);
+
+    const response = await fetch(proxyUrl + targetUrl, {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Basic " + auth
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${auth}`
       },
       body: JSON.stringify({
         model: model,
         messages: [
-          { role: "system", content: "你是日本代购客服，根据知识库回答：" + kb },
+          { role: "system", content: `你是日本代购客服，根据以下知识库回答用户问题：${kb}` },
           { role: "user", content: text }
         ],
         temperature: 0.7,
@@ -90,11 +93,12 @@ async function sendMsg() {
       })
     });
 
-    let json = await res.json();
-    let reply = json.choices?.[0]?.message?.content || "抱歉，我暂时无法回答";
+    const data = await response.json();
+    const reply = data.choices?.[0]?.message?.content || "抱歉，我暂时无法回答";
     document.getElementById('loading').textContent = reply;
   } catch (e) {
     document.getElementById('loading').textContent = "服务异常，请稍后再试";
+    console.error(e);
   }
   box.scrollTop = box.scrollHeight;
 }
