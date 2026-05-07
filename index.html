@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI客服后台管理</title>
+<style>
+body{margin:0;padding:20px;background:#f5f7fa;}
+.box{max-width:800px;margin:0 auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 0 15px #00000010;}
+h3{margin-top:0;color:#333;}
+textarea,input{width:100%;box-sizing:border-box;padding:10px;border:1px #ddd solid;border-radius:6px;margin:8px 0;font-size:14px;}
+textarea{height:120px;resize:vertical;}
+button{padding:10px 20px;background:#6B46E4;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-right:10px;}
+.logout{background:<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI客服后台管理</title>
+<style>
+body{margin:0;padding:20px;background:#f5f7fa;}
+.box{max-width:800px;margin:0 auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 0 15px #00000010;}
+h3{margin-top:0;color:#333;}
+textarea,input{width:100%;box-sizing:border-box;padding:10px;border:1px #ddd solid;border-radius:6px;margin:8px 0;font-size:14px;}
+textarea{height:120px;resize:vertical;}
+button{padding:10px 20px;background:#6B46E4;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-right:10px;}
+.logout{background:#999;}
+</style>
+</head>
+<body>
+<div class="box">
+  <h3>火山API配置</h3>
+  <input type="text" id="ak" placeholder="Access Key ID">
+  <input type="text" id="sk" placeholder="Secret Access Key">
+  <input type="text" id="apiUrl" placeholder="接口地址">
+  <input type="text" id="model" placeholder="模型名称">
+  <button onclick="saveApi()">保存配置</button>
+
+  <h3>自定义知识库（给AI喂资料）</h3>
+  <textarea id="kb" placeholder="在这里输入：日本代购规则、转运运费、时效、禁运品、汽配规则、售后话术等"></textarea>
+  <button onclick="saveKb()">保存知识库</button>
+
+  <h3>欢迎语设置</h3>
+  <input type="text" id="welcome" placeholder="客服开场欢迎语">
+  <button onclick="saveWelcome()">保存欢迎语</button>
+
+  <br><br>
+  <button class="logout" onclick="logout()">退出登录</button>
+</div>
+
+<script>
+// 登录校验
+if(!localStorage.getItem('isLogin'))location.href='login.html';
+
+// 初始化加载
+window.onload=function(){
+  document.getElementById('ak').value=localStorage.getItem('ak')||'';
+  document.getElementById('sk').value=localStorage.getItem('sk')||'';
+  document.getElementById('apiUrl').value=localStorage.getItem('apiUrl')||'';
+  document.getElementById('model').value=localStorage.getItem('model')||'';
+  document.getElementById('kb').value=localStorage.getItem('kb')||'';
+  document.getElementById('welcome').value=localStorage.getItem('welcome')||'您好，我是专属客服，有任何日本代购转运问题都可以咨询我~';
+}
+
+function saveApi(){
+  localStorage.setItem('ak',document.getElementById('ak').value);
+  localStorage.setItem('sk',document.getElementById('sk').value);
+  localStorage.setItem('apiUrl',document.getElementById('apiUrl').value);
+  localStorage.setItem('model',document.getElementById('model').value);
+  alert('火山API配置已保存');
+}
+function saveKb(){
+  localStorage.setItem('kb',document.getElementById('kb').value);
+  alert('知识库已保存，AI将按你录入的内容回答');
+}
+function saveWelcome(){
+  localStorage.setItem('welcome',document.getElementById('welcome').value);
+  alert('欢迎语已保存');
+}
+function logout(){
+  localStorage.removeItem('isLogin');
+  location.href='login.html';
+}
+</script>
+</body>
+</html>#999;}
+</style>
+</head>
+<body>
+<div class="box">
+  <h3>火山API配置</h3>
+  <input type="text" id="ak" placeholder="Access Key ID">
+  <input type="text" id="sk" placeholder="Secret Access Key">
+  <input type="text" id="apiUrl" placeholder="接口地址">
+  <input type="text" id="model" placeholder="模型名称">
+  <button onclick="saveApi()">保存配置</button>
+
+  <h3>自定义知识库（给AI喂资料）</h3>
+  <textarea id="kb" placeholder="在这里输入：日本代购规则、转运运费、时效、禁运品、汽配规则、售后话术等"></textarea>
+  <button onclick="saveKb()">保存知识库</button>
+
+  <h3>欢迎语设置</h3>
+  <input type="text" id="welcome" placeholder="客服开场欢迎语">
+  <button onclick="saveWelcome()">保存欢迎语</button>
+
+  <br><br>
+  <button class="logout" onclick="logout()">退出登录</button>
+</div>
+
+<script>
+// 登录校验
+if(!localStorage.getItem('isLogin'))location.href='login.html';
+
+// 初始化加载
+window.onload=function(){
+  document.getElementById('ak').value=localStorage.getItem('ak')||'';
+  document.getElementById('sk').value=localStorage.getItem('sk')||'';
+  document.getElementById('apiUrl').value=localStorage.getItem('apiUrl')||'';
+  document.getElementById('model').value=localStorage.getItem('model')||'';
+  document.getElementById('kb').value=localStorage.getItem('kb')||'';
+  document.getElementById('welcome').value=localStorage.getItem('welcome')||'您好，我是专属客服，有任何日本代购转运问题都可以咨询我~';
+}
+
+function saveApi(){
+  localStorage.setItem('ak',document.getElementById('ak').value);
+  localStorage.setItem('sk',document.getElementById('sk').value);
+  localStorage.setItem('apiUrl',document.getElementById('apiUrl').value);
+  localStorage.setItem('model',document.getElementById('model').value);
+  alert('火山API配置已保存');
+}
+function saveKb(){
+  localStorage.setItem('kb',document.getElementById('kb').value);
+  alert('知识库已保存，AI将按你录入的内容回答');
+}
+function saveWelcome(){
+  localStorage.setItem('welcome',document.getElementById('welcome').value);
+  alert('欢迎语已保存');
+}
+function logout(){
+  localStorage.removeItem('isLogin');
+  location.href='login.html';
+}
+</script>
+</body>
+</html>
