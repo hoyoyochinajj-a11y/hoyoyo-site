@@ -47,7 +47,7 @@ window.onload = function() {
   document.getElementById('welcomeMsg').textContent = welcome;
 }
 
-async function sendMsg() {
+function sendMsg() {
   let input = document.getElementById('msgInput');
   let text = input.value.trim();
   if (!text) return;
@@ -56,63 +56,44 @@ async function sendMsg() {
   let area = document.querySelector('.area');
 
   area.innerHTML += `<div class="bubble user">${text}</div>`;
-  area.innerHTML += `<div class="bubble bot" id="loading">正在思考中…</div>`;
+  area.innerHTML += `<div class="bubble bot" id="reply">正在查询中…</div>`;
   box.scrollTop = box.scrollHeight;
   input.value = '';
 
-  let ak = localStorage.getItem('ak');
-  let sk = localStorage.getItem('sk');
-  let apiUrl = localStorage.getItem('apiUrl');
-  let model = localStorage.getItem('model');
+  // 读取后台知识库
   let kb = localStorage.getItem('kb') || '';
+  let reply = '';
 
-  console.log("=== 调试信息 ===");
-  console.log("AK:", ak);
-  console.log("SK:", sk);
-  console.log("API地址:", apiUrl);
-  console.log("模型:", model);
-  console.log("知识库:", kb);
-
-  if (!ak || !sk || !apiUrl || !model) {
-    document.getElementById('loading').textContent = "客服未配置API，请稍后再试";
-    return;
+  // 关键词匹配规则
+  if (text.includes('运费') || text.includes('国际运费')) {
+    reply = kb.includes('运费') ? 
+      kb.split('运费')[1].split('\n')[0].trim() : 
+      '国际运费根据商品重量和目的地计算，首重500g约1500日元，续重每500g约800日元，最终以系统结算为准。';
+  } else if (text.includes('下单') || text.includes('流程')) {
+    reply = kb.includes('下单') ? 
+      kb.split('下单')[1].split('\n')[0].trim() : 
+      '下单流程：1.注册账号 → 2.提交商品链接 → 3.支付货款 → 4.商品入库 → 5.支付国际运费 → 6.仓库打包发货';
+  } else if (text.includes('密码') || text.includes('登录')) {
+    reply = kb.includes('密码') ? 
+      kb.split('密码')[1].split('\n')[0].trim() : 
+      '忘记密码可点击登录页的「忘记密码」，输入注册邮箱重置；如登录遇到问题，请联系客服。';
+  } else if (text.includes('你好') || text.includes('您好') || text.includes('hi')) {
+    reply = '您好！请问有什么可以帮您？';
+  } else if (text.includes('发货') || text.includes('多久')) {
+    reply = kb.includes('发货') ? 
+      kb.split('发货')[1].split('\n')[0].trim() : 
+      '商品入库后，仓库会在1-2个工作日内打包发货，国际物流时效约7-15天，具体以实际情况为准。';
+  } else {
+    reply = kb.includes('通用回复') ? 
+      kb.split('通用回复')[1].split('\n')[0].trim() : 
+      '感谢您的咨询，您的问题我已记录，客服会在1-2小时内回复您。';
   }
 
-  try {
-    const auth = btoa(`${ak}:${sk}`);
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${auth}`
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: [
-          { role: "system", content: `你是日本代购客服，根据以下知识库回答用户问题：${kb}` },
-          { role: "user", content: text }
-        ],
-        temperature: 0.7,
-        max_tokens: 1000
-      })
-    });
-
-    console.log("响应状态:", response.status);
-    const data = await response.json();
-    console.log("响应数据:", data);
-
-    if (response.ok && data.choices?.[0]?.message?.content) {
-      const reply = data.choices[0].message.content;
-      document.getElementById('loading').textContent = reply;
-    } else {
-      document.getElementById('loading').textContent = `API错误: ${data.error?.message || '未知错误'}`;
-    }
-  } catch (e) {
-    document.getElementById('loading').textContent = "服务异常，请稍后再试";
-    console.error("请求失败:", e);
-  }
-  box.scrollTop = box.scrollHeight;
+  // 模拟延迟回复
+  setTimeout(() => {
+    document.getElementById('reply').textContent = reply;
+    box.scrollTop = box.scrollHeight;
+  }, 800);
 }
 </script>
 </body>
