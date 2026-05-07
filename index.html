@@ -80,10 +80,8 @@ async function sendMsg() {
 
   try {
     const auth = btoa(`${ak}:${sk}`);
-    const proxyUrl = 'https://api.allorigins.win/raw?url=';
-    const targetUrl = encodeURIComponent(apiUrl);
 
-    const response = await fetch(proxyUrl + targetUrl, {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
