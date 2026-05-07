@@ -36,10 +36,8 @@ button{padding:10px 20px;background:#6B46E4;color:#fff;border:none;border-radius
 </div>
 
 <script>
-// 登录校验
 if(!localStorage.getItem('isLogin'))location.href='login.html';
 
-// 初始化加载
 window.onload=function(){
   document.getElementById('ak').value=localStorage.getItem('ak')||'';
   document.getElementById('sk').value=localStorage.getItem('sk')||'';
