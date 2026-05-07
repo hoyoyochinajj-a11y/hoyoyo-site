@@ -2,71 +2,80 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>AI客服后台管理</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本代购 - 在线客服</title>
 <style>
-body{margin:0;padding:20px;background:#f5f7fa;}
-.box{max-width:800px;margin:0 auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 0 15px #00000010;}
-h3{margin-top:0;color:#333;}
-textarea,input{width:100%;box-sizing:border-box;padding:10px;border:1px #ddd solid;border-radius:6px;margin:8px 0;font-size:14px;}
-textarea{height:120px;resize:vertical;}
-button{padding:10px 20px;background:#6B46E4;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-right:10px;}
-.logout{background:#999;}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui, -apple-system, sans-serif}
+body{background:#f5f7fa;padding:15px}
+.chat-container{max-width:500px;margin:0 auto;background:#fff;border-radius:15px;box-shadow:0 4px 20px #00000015;overflow:hidden;height:95vh;display:flex;flex-direction:column}
+.header{background:#6B46E4;color:white;padding:16px;text-align:center}
+.header h2{font-size:18px}
+.header p{font-size:13px;opacity:.9;margin-top:4px}
+.msg-box{flex:1;padding:15px;overflow-y:auto;background:#f9fafb}
+.bubble{margin-bottom:12px;max-width:80%;padding:10px 14px;border-radius:15px;line-height:1.5}
+.bot{background:#6B46E4;color:white;align-self:flex-start;border-bottom-left-radius:5px}
+.user{background:#e2e8f0;color:#111;align-self:flex-end;border-bottom-right-radius:5px;margin-left:auto}
+.input-bar{display:flex;padding:10px;border-top:1px solid #eee}
+.input-bar input{flex:1;padding:14px 16px;border-radius:30px;border:1px solid #ddd;outline:0;font-size:15px}
+.input-bar button{margin-left:8px;padding:0 20px;background:#6B46E4;color:white;border:none;border-radius:30px;font-weight:bold}
+.area{display:flex;flex-direction:column}
 </style>
 </head>
+
 <body>
-<div class="box">
-  <h3>火山API配置</h3>
-  <input type="text" id="ak" placeholder="Access Key ID">
-  <input type="text" id="sk" placeholder="Secret Access Key">
-  <input type="text" id="apiUrl" placeholder="接口地址">
-  <input type="text" id="model" placeholder="模型名称">
-  <button onclick="saveApi()">保存配置</button>
+<div class="chat-container">
+  <div class="header">
+    <h2>日本代购 · 官方客服</h2>
+    <p>24小时在线 | 正品代买 | 物流转运</p>
+  </div>
 
-  <h3>自定义知识库（给AI喂资料）</h3>
-  <textarea id="kb" placeholder="在这里输入：日本代购规则、转运运费、时效、禁运品、汽配规则、售后话术等"></textarea>
-  <button onclick="saveKb()">保存知识库</button>
+  <div class="msg-box" id="msgBox">
+    <div class="area">
+      <div class="bubble bot" id="welcomeMsg"></div>
+    </div>
+  </div>
 
-  <h3>欢迎语设置</h3>
-  <input type="text" id="welcome" placeholder="客服开场欢迎语">
-  <button onclick="saveWelcome()">保存欢迎语</button>
-
-  <br><br>
-  <button class="logout" onclick="logout()">退出登录</button>
+  <div class="input-bar">
+    <input id="msgInput" placeholder="请输入您的问题…" />
+    <button onclick="sendMsg()">发送</button>
+  </div>
 </div>
 
 <script>
-// 直接标记为已登录，不会再跳转
-localStorage.setItem('isLogin', 'true');
-
-// 初始化加载
-window.onload=function(){
-  document.getElementById('ak').value=localStorage.getItem('ak')||'';
-  document.getElementById('sk').value=localStorage.getItem('sk')||'';
-  document.getElementById('apiUrl').value=localStorage.getItem('apiUrl')||'';
-  document.getElementById('model').value=localStorage.getItem('model')||'';
-  document.getElementById('kb').value=localStorage.getItem('kb')||'';
-  document.getElementById('welcome').value=localStorage.getItem('welcome')||'您好，我是专属客服，有任何日本代购转运问题都可以咨询我~';
+// 加载你在后台设置的欢迎语
+window.onload = function() {
+  let welcome = localStorage.getItem('welcome') || '您好，我是您的专属客服，有什么可以帮您？';
+  document.getElementById('welcomeMsg').textContent = welcome;
 }
 
-function saveApi(){
-  localStorage.setItem('ak',document.getElementById('ak').value);
-  localStorage.setItem('sk',document.getElementById('sk').value);
-  localStorage.setItem('apiUrl',document.getElementById('apiUrl').value);
-  localStorage.setItem('model',document.getElementById('model').value);
-  alert('火山API配置已保存');
-}
-function saveKb(){
-  localStorage.setItem('kb',document.getElementById('kb').value);
-  alert('知识库已保存，AI将按你录入的内容回答');
-}
-function saveWelcome(){
-  localStorage.setItem('welcome',document.getElementById('welcome').value);
-  alert('欢迎语已保存');
-}
-function logout(){
-  localStorage.removeItem('isLogin');
-  alert('已退出，刷新页面即可重新进入');
+function sendMsg(){
+  let input = document.getElementById('msgInput');
+  let text = input.value.trim();
+  if(!text) return;
+
+  let box = document.getElementById('msgBox');
+  let area = document.querySelector('.area');
+  
+  // 显示用户消息
+  area.innerHTML += `<div class="bubble user">${text}</div>`;
+  box.scrollTop = box.scrollHeight;
+
+  // 调用火山API（使用你在后台保存的配置）
+  let ak = localStorage.getItem('ak');
+  let sk = localStorage.getItem('sk');
+  let apiUrl = localStorage.getItem('apiUrl');
+  let model = localStorage.getItem('model');
+  let kb = localStorage.getItem('kb');
+
+  if(!ak || !sk || !apiUrl || !model) {
+    area.innerHTML += `<div class="bubble bot">客服配置未完成，请联系管理员。</div>`;
+    box.scrollTop = box.scrollHeight;
+    return;
+  }
+
+  // 这里是模拟回复，后续你可以根据API文档改成真实请求
+  area.innerHTML += `<div class="bubble bot">正在为您查询，请稍候…</div>`;
+  box.scrollTop = box.scrollHeight;
 }
 </script>
 </body>
