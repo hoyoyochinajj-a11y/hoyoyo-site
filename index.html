@@ -42,39 +42,60 @@ body{background:#f5f7fa;padding:15px}
 </div>
 
 <script>
-// 加载你在后台设置的欢迎语
 window.onload = function() {
   let welcome = localStorage.getItem('welcome') || '您好，我是您的专属客服，有什么可以帮您？';
   document.getElementById('welcomeMsg').textContent = welcome;
 }
 
-function sendMsg(){
+async function sendMsg() {
   let input = document.getElementById('msgInput');
   let text = input.value.trim();
-  if(!text) return;
+  if (!text) return;
 
   let box = document.getElementById('msgBox');
   let area = document.querySelector('.area');
-  
-  // 显示用户消息
-  area.innerHTML += `<div class="bubble user">${text}</div>`;
-  box.scrollTop = box.scrollHeight;
 
-  // 调用火山API（使用你在后台保存的配置）
+  area.innerHTML += `<div class="bubble user">${text}</div>`;
+  area.innerHTML += `<div class="bubble bot" id="loading">正在思考中…</div>`;
+  box.scrollTop = box.scrollHeight;
+  input.value = '';
+
   let ak = localStorage.getItem('ak');
   let sk = localStorage.getItem('sk');
   let apiUrl = localStorage.getItem('apiUrl');
   let model = localStorage.getItem('model');
-  let kb = localStorage.getItem('kb');
+  let kb = localStorage.getItem('kb') || '';
 
-  if(!ak || !sk || !apiUrl || !model) {
-    area.innerHTML += `<div class="bubble bot">客服配置未完成，请联系管理员。</div>`;
-    box.scrollTop = box.scrollHeight;
+  if (!ak || !sk || !apiUrl || !model) {
+    document.getElementById('loading').textContent = "客服未配置API，请稍后再试";
     return;
   }
 
-  // 这里是模拟回复，后续你可以根据API文档改成真实请求
-  area.innerHTML += `<div class="bubble bot">正在为您查询，请稍候…</div>`;
+  try {
+    let auth = btoa(ak + ":" + sk);
+    let res = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Basic " + auth
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: "system", content: "你是日本代购客服，根据知识库回答：" + kb },
+          { role: "user", content: text }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      })
+    });
+
+    let json = await res.json();
+    let reply = json.choices?.[0]?.message?.content || "抱歉，我暂时无法回答";
+    document.getElementById('loading').textContent = reply;
+  } catch (e) {
+    document.getElementById('loading').textContent = "服务异常，请稍后再试";
+  }
   box.scrollTop = box.scrollHeight;
 }
 </script>
