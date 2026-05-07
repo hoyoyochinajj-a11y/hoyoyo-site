@@ -3,112 +3,335 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>日本代购 · 智能客服</title>
+<title>HOYOYO日本代购 · 智能客服</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui, -apple-system, sans-serif}
-body{background:#f5f7fa;padding:15px}
-.chat-container{max-width:500px;margin:0 auto;background:#fff;border-radius:15px;box-shadow:0 4px 20px #00000015;overflow:hidden;height:95vh;display:flex;flex-direction:column}
-.header{background:#6B46E4;color:white;padding:16px;text-align:center}
-.header h2{font-size:18px}
-.header p{font-size:13px;opacity:.9;margin-top:4px}
-.msg-box{flex:1;padding:15px;overflow-y:auto;background:#f9fafb}
-.bubble{margin-bottom:12px;max-width:80%;padding:10px 14px;border-radius:15px;line-height:1.5}
-.bot{background:#6B46E4;color:white;align-self:flex-start;border-bottom-left-radius:5px}
-.user{background:#e2e8f0;color:#111;align-self:flex-end;border-bottom-right-radius:5px;margin-left:auto}
-.input-bar{display:flex;padding:10px;border-top:1px solid #eee}
-.input-bar input{flex:1;padding:14px 16px;border-radius:30px;border:1px solid #ddd;outline:0;font-size:15px}
-.input-bar button{margin-left:8px;padding:0 20px;background:#6B46E4;color:white;border:none;border-radius:30px;font-weight:bold}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif}
+body{background:#f4f6f8;padding:10px}
+.chat-container{max-width:520px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08);overflow:hidden;height:96vh;display:flex;flex-direction:column}
+.header{background:#466BFF;color:#fff;padding:18px;text-align:center}
+.header h2{font-size:19px}
+.header p{font-size:14px;opacity:.9;margin-top:4px}
+.msg-box{flex:1;padding:16px;overflow-y:auto;background:#f9fafb}
+.bubble{margin-bottom:12px;max-width:82%;padding:11px 15px;border-radius:16px;line-height:1.55;font-size:15px}
+.bot{background:#466BFF;color:#fff;align-self:flex-start;border-bottom-left-radius:6px}
+.user{background:#e2e8f0;color:#222;align-self:flex-end;border-bottom-right-radius:6px;margin-left:auto}
+.input-bar{display:flex;padding:12px;border-top:1px solid #eee}
+.input-bar input{flex:1;padding:14px 18px;border-radius:30px;border:1px solid #ddd;outline:0;font-size:15px}
+.input-bar button{margin-left:10px;padding:0 22px;background:#466BFF;color:#fff;border:none;border-radius:30px;font-weight:600;cursor:pointer}
 .area{display:flex;flex-direction:column}
 </style>
 </head>
-
 <body>
+
 <div class="chat-container">
   <div class="header">
-    <h2>日本代购 · 智能客服</h2>
-    <p>24小时在线 | 自动理解网站内容</p>
+    <h2>HOYOYO日本代购 · 智能客服</h2>
+    <p>24小时在线 · 自动理解网站内容</p>
   </div>
 
   <div class="msg-box" id="msgBox">
     <div class="area">
-      <div class="bubble bot" id="welcomeMsg"></div>
+      <div class="bubble bot" id="welcome">您好，我是HOYOYO智能客服，已学习全部网站内容与帮助中心FAQ，有问题可以直接问我~</div>
     </div>
   </div>
 
   <div class="input-bar">
-    <input id="msgInput" placeholder="请输入您的问题…" />
-    <button onclick="sendMsg()">发送</button>
+    <input id="input" placeholder="请输入您的问题…" autocomplete="off" />
+    <button onclick="send()">发送</button>
   </div>
 </div>
 
 <script>
-// 自动抓取当前网站的所有文本内容
-async function getWebsiteContent() {
-  try {
-    const res = await fetch(window.location.href);
-    const html = await res.text();
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    return div.innerText.replace(/\s+/g, ' ').substring(0, 8000);
-  } catch (e) {
-    return "";
-  }
-}
+// 网站内容 + 全部FAQ知识库（你给的所有问答）
+const siteInfo = `
+【HOYOYO官网】https://cn.hoyoyo.com/
+【新手教程】https://cn.hoyoyo.com/help~index~id~6.html
+【费用试算】https://cn.hoyoyo.com/help~calculator.html
 
-// 初始化欢迎语
-window.onload = async function() {
-  let welcome = localStorage.getItem('welcome') || '您好，我是您的智能客服，我已了解网站全部内容，有什么可以帮您？';
-  document.getElementById('welcomeMsg').textContent = welcome;
-  window.siteContent = await getWebsiteContent();
+【FAQ知识库】
+Q:密码忘了，帐号登录不上了，怎么办？
+A:在登录帐号时点击 “忘记密码“按钮，输入您注册的邮箱，系统会发送重置密码邮件到您的邮箱，根据邮件提示重新修改密码即可。操作中遇到任何问题，请联系客服为您解决。
+
+Q:下单流程是怎么样的？
+A:会员下单后我们会帮您进行购买，然后卖家会寄到我们日本仓库，到了日本仓库系统会发邮件和站内信通知你，你在操作发货填写收货地址支付国际运费。
+
+Q:我的订单一直显示「与卖家沟通中」？
+A:订单在您完成付款（商品货款）支付后，HOYOYO会尽快为您处理。跳蚤市场（如：MERCARI（煤炉）、OTAMART、RAKUMA（原FRIL））是需先留言连络卖家，并在得到卖家的同意后再正式进行购买的网站。因此在您完成付款（商品款项）支付后，职员会为您在商品页面中留言给卖家进行「购买申请」，当卖家不回应留言、不同意交易、或是商品存货不足时，商品有可能无法顺利购买。若于10个工作天内无法顺利开始交易，工作人员会为您取消订单及退还付款。
+
+Q:商品如果有降价时，差额是否会退款呢？
+A:如果实际购买金额低于您所支付的付款款项时，会在订购完成后将差额退款给您。
+
+Q:HOYOYO下单后可以取消订单吗？
+A:会员下单后均不支持退换货服务，请您在购买前仔细确认商品信息在进行下单！（请会员在知晓此风险的基础上决定您的购买意向。）
+
+Q:什么是「直购价」？
+A:「直购价」是直接购买价的意思，一个由卖家设定可以马上买下拍卖商品的价钱。在HOYOYO系统中，只要您使用了此直接购买价入标，拍卖将会立即结束，而您会成为得标者。当直接购买价与现在的价格相差不大，而您想要入标的拍卖是人气商品，建议可以以直接购买价进行入标以结束拍卖。
+
+Q:費用如何计算？
+A:会员可以使用费用试算器进行估算：https://cn.hoyoyo.com/help~calculator.html
+商品到手价 = 商品含税价格 +日本銀行匯款手续费300日元+日本本地运费等其他费用（卖家包邮则没有这个费用）+ 国际运费
+
+Q:HOYOYO汇率是多少？
+A:HOYOYO汇率可以在个人账户管理中查看，费用计算根据HOYOYO网站汇率计算。
+
+Q:账户里的余额可以退吗？
+A:可以的，余额会员可以购买物品或者申请退款。
+
+Q:为什么会交易关闭？
+A:卖家可能会因为商品缺货，瑕疵等原因取消订单，HOYOYO收到卖家退款会退回会员HOYOYO账户。
+
+Q:雅虎代购出价被超了可以加价吗？
+A:如果雅虎代购出价被超了，系统会提示会员，会员可以选择加价或者取消。（如显示出价最高则不能取消）
+
+Q:卖家发货了多久到日本仓库？
+A:一般显示卖家发货，卖家寄出后大概1周左右到HOYOYO日本仓库，到了仓库系统会发邮件和站内信通知会员。
+
+Q:如果货品是预约 / 预订商品，我能购买吗?
+A:可以，會員支付商品金额后，HOYOYO会进行预约 / 预订商品，商品一旦预定下单不能取消。
+
+Q:商品可以在日本仓库放多久？
+A:包裹到达日本仓库系统会发出 "到达转运仓" 通知日开始计算30日内发货免仓储费，Hoyoyo 将以每个包裹收取50日元仓储费。若逾越90日仍不发货，Hoyoyo 则视同会员同意放弃该商品之所有，本公司将不再另行通知。
+
+Q:骏河屋下单后可以取消订单吗？
+A:骏河屋订单除非賣家通知有异常情况之外无法申请退款！駿河屋不可取消交易說明
+
+Q:骏河屋需要日本本地运费吗？
+A:骏河屋日本本地运费通常是商品金额0-1000日元内-660日元HOYOYO香港门市
+
+Q:合并订购的商品是否可以分开发送呢？
+A:卖家同时寄达的复数商品，无法为您分开发送。如果您希望将商品分别发送时，请将每件商品分别支付付款，并且分开订购。
+
+Q:虚拟商品可以购买吗？
+A:可以，虚拟商品需要收取商品价格10%手续费！（虚拟商品下单后无法取消！）
+
+Q:HOYOYO代购的商品可以寄到日本其他地址吗？
+A:HOYOYO代购的商品暂时只支持寄到HOYOYO日本仓库。
+
+Q:支付运送相关费用后，是否可以更改地址或者更改包裹内容？
+A:支付运送相关费用后，无法更改地址或更改商品内容。对于商品或者包裹有任何要求时，请在支付包裹运送相关费用前与客服人员联系。
+
+Q:日本代购包裹可以修改商品金額吗？
+A:不可以，HOYOYO暂不支持修改商品金额。如何降低日本代购包裹退运→查看文章
+
+Q:包裹会被收关税吗？
+A:因为海关会抽查包裹，包裹是有可能会被收关税的，关税需要您来负担。一般被海关退运的包裹都是因为包裹内商品数量过多（比如十几个保温杯等）或价值过高,建议發貨的時候分箱进行商品发送，分散商品数量和价值，同时最好更换下收货地址，最大程度上避免包裹再次被海关查到。
+
+Q:国际包裹会被退运吗？
+A:因为海关会抽查包裹，如遇海关抽检若无法缴税和申报有可能会产生退运，退运会直接退回hoyoyo日本仓库，hoyoyo收到退件后将会联络会员，再次进行国际运送时重新支付运费并安排寄出，退运产生的费用由会员承担。（包裹内商品数量过多或价值过高,建议發貨的時候分箱进行商品发送！）
+
+Q:你们可以寄什么国家？
+A:我们可以邮寄绝大多数国家和地区，您可以在页面的国家栏选项中寻找您想要邮寄的国家。目前不支持寄送日本本地。
+
+Q:可以多个包裹一起发货吗？
+A:可以，会员可以将多个订单合并为一个，以节省运费。HOYOYO会免费为您提供10个订单以内的合单（如果您买的商品太多，需要选用额外的纸箱就需要支付材料费）。当您的订单数量超过10个时，合单时，从第11个起收取每个100日元的手续费。
+
+Q:国际运输可以保价吗？
+A:保价：如商品价值比较高，可联络客服进行保价（需额外支付保价费用）。赔偿上限为会员保价金额。
+未保价：若商品于运送途中破损遗失，HOYOYO最高赔偿金额为运费的3倍或者总价格，以较低者为准。理赔上限为美金50元。
+*默认无保价，如需保价请咨询客服！
+
+Q:为什么合并发货显示尺寸和重量超过限制？
+A:邮局对寄送包裹大小有限制：1.货品总重量不可以超过30kg 2.最长一边不可以超过1.5米 3.最长一边+垂直于最长边的平面周长不能超过3米.建议客人将包裹分开操作发货。
+
+Q:可以寄送含有锂电池的商品吗？
+A:当商品满足以下条件时便可以寄送至日本国外。
+①锂电池装置在机器内
+②一个包裹内最多可寄送「2个」包含锂电池的商品
+③收件国家／地区可接受包含锂电池商品的进口
+请留意，视为单体的锂电池，如锂充电电池、行动电源（充电宝）、非装置在机器内的笔记型电脑、相机电池等，都将无法发送至日本国外。
+
+Q:有哪些商品是不能寄的吗？
+A:会员可以查看-禁止购买商品。如无法确认想竞拍或购买的商品是否为违禁品，请在竞拍或购买前联系在线客服先行确认是否可正常运输。
+
+Q:国际运输包裹可以加固包装吗？
+A:会员操作国际包裹发货时可以选择加强包装，仓库会将包裹以厚气泡纸加强稳固进行防护，若您的商品属于易碎物品或是高单价商品，为避免受损，建议您选择加强包装服务。
+`;
+
+// 智能匹配函数（核心）
+function smartAnswer(q) {
+  q = q.toLowerCase();
+  const faq = siteInfo;
+
+  // 密码找回
+  if (q.includes("密码") || q.includes("忘记") || q.includes("登录不上")) {
+    return faq.split("Q:密码忘了")[1].split("Q:")[0].trim();
+  }
+
+  // 下单流程
+  if (q.includes("下单") || q.includes("流程") || q.includes("怎么买")) {
+    return faq.split("Q:下单流程")[1].split("Q:")[0].trim();
+  }
+
+  // 与卖家沟通中
+  if (q.includes("沟通中") || q.includes("与卖家")) {
+    return faq.split("Q:我的订单一直显示「与卖家沟通中」")[1].split("Q:")[0].trim();
+  }
+
+  // 降价差额退款
+  if (q.includes("降价") || q.includes("差额") || q.includes("退款")) {
+    return faq.split("Q:商品如果有降价时")[1].split("Q:")[0].trim();
+  }
+
+  // 取消订单
+  if (q.includes("取消订单") || q.includes("退货") || q.includes("换货")) {
+    if (q.includes("骏河屋")) {
+      return faq.split("Q: 骏河屋下单后可以取消订单吗？")[1].split("Q:")[0].trim();
+    }
+    return faq.split("Q: HOYOYO下单后可以取消订单吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 直购价
+  if (q.includes("直购价")) {
+    return faq.split("Q:什么是「直购价」？")[1].split("Q:")[0].trim();
+  }
+
+  // 费用计算
+  if (q.includes("费用") || q.includes("多少钱") || q.includes("价格") || q.includes("计算")) {
+    return faq.split("Q:費用如何计算？")[1].split("Q:")[0].trim();
+  }
+
+  // 汇率
+  if (q.includes("汇率")) {
+    return faq.split("Q:HOYOYO汇率是多少？")[1].split("Q:")[0].trim();
+  }
+
+  // 余额退款
+  if (q.includes("余额") || q.includes("账户余额")) {
+    return faq.split("Q:账户里的余额可以退吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 交易关闭
+  if (q.includes("交易关闭") || q.includes("关闭订单")) {
+    return faq.split("Q:为什么会交易关闭？")[1].split("Q:")[0].trim();
+  }
+
+  // 雅虎出价加价
+  if (q.includes("雅虎") || q.includes("出价") || q.includes("被超")) {
+    return faq.split("Q:雅虎代购出价被超了可以加价吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 到日本仓库时间
+  if (q.includes("多久到") || q.includes("日本仓库") || q.includes("卖家发货")) {
+    return faq.split("Q:卖家发货了多久到日本仓库？")[1].split("Q:")[0].trim();
+  }
+
+  // 预约/预订商品
+  if (q.includes("预约") || q.includes("预订")) {
+    return faq.split("Q:如果货品是预约 / 预订商品，我能购买吗?")[1].split("Q:")[0].trim();
+  }
+
+  // 仓储时间/仓储费
+  if (q.includes("仓库放多久") || q.includes("仓储") || q.includes("放多久")) {
+    return faq.split("Q:商品可以在日本仓库放多久？")[1].split("Q:")[0].trim();
+  }
+
+  // 骏河屋本地运费
+  if (q.includes("骏河屋") && q.includes("运费")) {
+    return faq.split("Q: 骏河屋需要日本本地运费吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 合并分开发货
+  if (q.includes("合并") || q.includes("分开") || q.includes("分开发")) {
+    return faq.split("Q:合并订购的商品是否可以分开发送呢？")[1].split("Q:")[0].trim();
+  }
+
+  // 虚拟商品
+  if (q.includes("虚拟商品")) {
+    return faq.split("Q:虚拟商品可以购买吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 寄日本其他地址
+  if (q.includes("寄到日本") || q.includes("其他地址")) {
+    return faq.split("Q:HOYOYO代购的商品可以寄到日本其他地址吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 支付后改地址/改内容
+  if (q.includes("改地址") || q.includes("更改地址") || q.includes("改内容")) {
+    return faq.split("Q:支付运送相关费用后，是否可以更改地址或者更改包裹内容？")[1].split("Q:")[0].trim();
+  }
+
+  // 修改商品金额
+  if (q.includes("修改金额") || q.includes("商品金额")) {
+    return faq.split("Q:日本代购包裹可以修改商品金額吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 关税
+  if (q.includes("关税") || q.includes("税") || q.includes("被税")) {
+    return faq.split("Q:包裹会被收关税吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 退运
+  if (q.includes("退运") || q.includes("被退运")) {
+    return faq.split("Q:国际包裹会被退运吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 寄哪些国家
+  if (q.includes("寄什么国家") || q.includes("哪些国家") || q.includes("寄哪里")) {
+    return faq.split("Q:你们可以寄什么国家？")[1].split("Q:")[0].trim();
+  }
+
+  // 合并发货
+  if (q.includes("多个包裹") || q.includes("一起发货") || q.includes("合单")) {
+    return faq.split("Q:可以多个包裹一起发货吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 保价
+  if (q.includes("保价") || q.includes("赔偿")) {
+    return faq.split("Q: 国际运输可以保价吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 尺寸重量限制
+  if (q.includes("尺寸") || q.includes("重量") || q.includes("超过限制")) {
+    return faq.split("Q:为什么合并发货显示尺寸和重量超过限制？")[1].split("Q:")[0].trim();
+  }
+
+  // 锂电池
+  if (q.includes("锂电池") || q.includes("电池") || q.includes("充电宝")) {
+    return faq.split("Q:可以寄送含有锂电池的商品吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 违禁品/不能寄
+  if (q.includes("不能寄") || q.includes("违禁品") || q.includes("禁止购买")) {
+    return faq.split("Q:有哪些商品是不能寄的吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 加固包装
+  if (q.includes("加固") || q.includes("包装") || q.includes("气泡纸")) {
+    return faq.split("Q:国际运输包裹可以加固包装吗？")[1].split("Q:")[0].trim();
+  }
+
+  // 通用智能回复
+  return `您好，结合HOYOYO网站内容：${siteInfo.substring(0,200)}...
+您的问题我已理解，如需更精准回答，请您再具体一点，或直接咨询人工客服。
+官网：https://cn.hoyoyo.com/`;
 }
 
 // 发送消息
-async function sendMsg() {
-  let input = document.getElementById('msgInput');
-  let text = input.value.trim();
+function send() {
+  const input = document.getElementById("input");
+  const text = input.value.trim();
   if (!text) return;
 
-  let box = document.getElementById('msgBox');
-  let area = document.querySelector('.area');
+  const box = document.getElementById("msgBox");
+  const area = document.querySelector(".area");
 
   area.innerHTML += `<div class="bubble user">${text}</div>`;
-  area.innerHTML += `<div class="bubble bot" id="loading">正在智能思考中…</div>`;
+  area.innerHTML += `<div class="bubble bot" id="load">思考中…</div>`;
   box.scrollTop = box.scrollHeight;
-  input.value = '';
+  input.value = "";
 
-  let kb = localStorage.getItem('kb') || '';
-  let siteContent = window.siteContent || '';
-  let prompt = `
-你是日本代购网站的智能客服。
-请根据以下信息回答用户问题：
-1. 网站内容：${siteContent}
-2. 自定义知识库：${kb}
-
-用户问题：${text}
-请用自然、专业、简洁的中文回答。
-`;
-
-  try {
-    // 免费智能AI接口（自动理解上下文）
-    let resp = await fetch("https://api.aiprocess.io/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7
-      })
-    });
-
-    let data = await resp.json();
-    let reply = data.choices?.[0]?.message?.content || "抱歉，我暂时无法回答";
-    document.getElementById('loading').textContent = reply;
-  } catch (e) {
-    document.getElementById('loading').textContent = "我已了解网站内容，正在为您解答：" + text;
-  }
-
-  box.scrollTop = box.scrollHeight;
+  // 智能回答
+  setTimeout(() => {
+    const ans = smartAnswer(text);
+    document.getElementById("load").textContent = ans;
+    box.scrollTop = box.scrollHeight;
+  }, 900);
 }
+
+// 回车发送
+document.getElementById("input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") send();
+});
 </script>
 </body>
 </html>
