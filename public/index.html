@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HOYOYO 智能客服</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", sans-serif; background: #f5f7fa; display: flex; justify-content: center; align-items: center; height: 100vh; }
+  .chat-container { width: 420px; max-width: 95vw; background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+  .header { background: linear-gradient(135deg, #6B8EFF, #4A6CF7); color: white; padding: 16px 20px; font-size: 18px; font-weight: bold; }
+  .chat-box { flex: 1; padding: 16px; overflow-y: auto; min-height: 350px; max-height: 60vh; background: #f8fafc; }
+  .message { margin-bottom: 12px; display: flex; }
+  .message.user { justify-content: flex-end; }
+  .message.assistant { justify-content: flex-start; }
+  .bubble { max-width: 80%; padding: 10px 14px; border-radius: 18px; line-height: 1.5; word-break: break-word; }
+  .message.user .bubble { background: #4A6CF7; color: white; border-bottom-right-radius: 4px; }
+  .message.assistant .bubble { background: white; border: 1px solid #e2e8f0; color: #333; border-bottom-left-radius: 4px; }
+  .input-area { display: flex; padding: 12px; border-top: 1px solid #eee; background: white; }
+  .input-area input { flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 24px; outline: none; font-size: 14px; }
+  .input-area button { margin-left: 8px; background: #4A6CF7; color: white; border: none; border-radius: 24px; padding: 10px 18px; cursor: pointer; white-space: nowrap; }
+  .input-area button:disabled { background: #a0aec0; cursor: not-allowed; }
+  .email-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10; }
+  .modal-box { background: white; border-radius: 16px; padding: 30px; text-align: center; width: 320px; }
+  .modal-box input { width: 100%; padding: 10px; margin: 16px 0; border: 1px solid #ddd; border-radius: 8px; }
+  .modal-box button { width: 100%; padding: 10px; background: #4A6CF7; color: white; border: none; border-radius: 8px; cursor: pointer; }
+  .action-row { display: flex; justify-content: space-between; margin-top: 8px; padding: 0 12px 12px; }
+  .action-row button { background: transparent; border: 1px solid #4A6CF7; color: #4A6CF7; border-radius: 12px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
+  .bubble a { color: #1890ff; text-decoration: underline; word-break: break-all; }
+</style>
+</head>
+<body>
+<div class="chat-container">
+  <div class="header" id="headerText">🤖 HOYOYO 客服小助手</div>
+  <div class="chat-box" id="chatBox"></div>
+  <div class="action-row">
+    <button onclick="switchToHuman()">👤 转人工客服</button>
+    <button onclick="openSuggest()">💡 提建议</button>
+    <button onclick="openDemand()">📋 提需求</button>
+  </div>
+  <div class="input-area">
+    <input type="text" id="messageInput" placeholder="输入问题，或发煤炉链接/搜商品名..." onkeypress="if(event.keyCode==13) sendMessage()" />
+    <button id="sendBtn" onclick="sendMessage()">发送</button>
+  </div>
+</div>
+
+<!-- 邮箱绑定弹窗 -->
+<div class="email-modal" id="emailModal">
+  <div class="modal-box">
+    <h3>✉️ 绑定 HOYOYO 邮箱</h3>
+    <p style="color:#666;font-size:14px;">用于记录你的专属对话</p>
+    <input type="email" id="emailInput" placeholder="name@hoyoyo.com" />
+    <button onclick="saveEmail()">开始对话</button>
+  </div>
+</div>
+
+<script>
+  // ======== 多语言 ========
+  const i18n = {
+    'zh-CN': { header:'🤖 HOYOYO 客服小助手', emailTitle:'✉️ 绑定 HOYOYO 邮箱', emailDesc:'用于记录你的专属对话', emailPlaceholder:'name@hoyoyo.com', startChat:'开始对话', switchHuman:'👤 转人工客服', suggest:'💡 提建议', demand:'📋 提需求', inputPlaceholder:'输入问题，或发煤炉链接/搜商品名...', send:'发送', pleaseEmail:'请先绑定邮箱', validEmail:'请输入有效邮箱', suggestPrompt:'请输入你的建议：', demandPrompt:'请描述你的服务需求：', suggestThanks:'感谢你的建议！', demandThanks:'需求已记录,我们会尽快处理！', networkError:'网络开小差了，请稍后再试～', waitMessage:'稍等一下，小助手正在赶来的路上～' },
+    'zh-TW': { header:'🤖 HOYOYO 客服小幫手', emailTitle:'✉️ 綁定 HOYOYO 信箱', emailDesc:'用於記錄您的專屬對話', emailPlaceholder:'name@hoyoyo.com', startChat:'開始對話', switchHuman:'👤 轉人工客服', suggest:'💡 提供建議', demand:'📋 提出需求', inputPlaceholder:'輸入問題，或發煤爐連結/搜尋商品名...', send:'發送', pleaseEmail:'請先綁定信箱', validEmail:'請輸入有效信箱', suggestPrompt:'請輸入您的建議：', demandPrompt:'請描述您的服務需求：', suggestThanks:'感謝您的建議！', demandThanks:'需求已記錄，我們會儘快處理！', networkError:'網路連線異常，請稍後再試～', waitMessage:'請稍候，小幫手正在趕來的路上～' },
+    'en': { header:'🤖 HOYOYO Assistant', emailTitle:'✉️ Bind HOYOYO Email', emailDesc:'To save your personal conversation', emailPlaceholder:'name@hoyoyo.com', startChat:'Start Chat', switchHuman:'👤 Transfer to Human', suggest:'💡 Suggestion', demand:'📋 Request', inputPlaceholder:'Type question, or Mercari link/product name...', send:'Send', pleaseEmail:'Please bind your email first', validEmail:'Please enter a valid email', suggestPrompt:'Please enter your suggestion:', demandPrompt:'Please describe your service request:', suggestThanks:'Thanks for your suggestion!', demandThanks:'Request recorded, we will handle it soon!', networkError:'Network error, please try again later~', waitMessage:'Just a moment, our assistant is on the way~' },
+    'ja': { header:'🤖 HOYOYO アシスタント', emailTitle:'✉️ HOYOYO メールアドレスを登録', emailDesc:'あなた専用の会話を保存します', emailPlaceholder:'name@hoyoyo.com', startChat:'チャット開始', switchHuman:'👤 有人対応に切り替え', suggest:'💡 提案する', demand:'📋 要望を送る', inputPlaceholder:'質問、またはメルカリのリンク/商品名を入力...', send:'送信', pleaseEmail:'先にメールアドレスを登録してください', validEmail:'有効なメールアドレスを入力してください', suggestPrompt:'提案を入力してください：', demandPrompt:'サービス要望を説明してください：', suggestThanks:'ご提案ありがとうございます！', demandThanks:'要望を受け付けました。早急に対応いたします！', networkError:'ネットワークエラーです。後でもう一度お試しください～', waitMessage:'少々お待ちください、アシスタントが向かっています～' }
+  };
+  function getLang() {
+    const lang = navigator.language || navigator.userLanguage;
+    if (lang.startsWith('zh-TW') || lang.startsWith('zh-HK')) return 'zh-TW';
+    if (lang.startsWith('zh')) return 'zh-CN';
+    if (lang.startsWith('ja')) return 'ja';
+    if (lang.startsWith('en')) return 'en';
+    return 'zh-CN';
+  }
+  const t = i18n[getLang()];
+  document.getElementById('headerText').innerText = t.header;
+  document.getElementById('messageInput').placeholder = t.inputPlaceholder;
+  document.getElementById('sendBtn').innerText = t.send;
+  document.querySelectorAll('.action-row button')[0].innerText = t.switchHuman;
+  document.querySelectorAll('.action-row button')[1].innerText = t.suggest;
+  document.querySelectorAll('.action-row button')[2].innerText = t.demand;
+  const modal = document.getElementById('emailModal');
+  modal.querySelector('h3').innerText = t.emailTitle;
+  modal.querySelector('p').innerText = t.emailDesc;
+  modal.querySelector('input').placeholder = t.emailPlaceholder;
+  modal.querySelector('button').innerText = t.startChat;
+
+  let userEmail = localStorage.getItem('hoyoyo_email');
+  const chatBox = document.getElementById('chatBox');
+  const msgInput = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
+
+  // ======== 工具函数：将文本中的 URL 转为可点击链接 ========
+  function linkify(text) {
+    return text.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  }
+
+  function loadLocalHistory() {
+    if (!userEmail) return;
+    const history = JSON.parse(localStorage.getItem(`chat_${userEmail}`) || '[]');
+    chatBox.innerHTML = '';
+    history.forEach(h => addBubble(h.role, h.content));
+  }
+
+  function addBubble(role, text) {
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+    // 先转义 HTML 特殊字符（防止 XSS），然后转换链接
+    const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const linked = linkify(escaped);
+    div.innerHTML = `<div class="bubble">${linked}</div>`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    if (userEmail) {
+      let history = JSON.parse(localStorage.getItem(`chat_${userEmail}`) || '[]');
+      history.push({ role, content: text });
+      if (history.length > 30) history = history.slice(-30);
+      localStorage.setItem(`chat_${userEmail}`, JSON.stringify(history));
+    }
+  }
+
+  async function sendMessage() {
+    const msg = msgInput.value.trim();
+    if (!msg) return;
+    if (!userEmail) { alert(t.pleaseEmail); return; }
+    addBubble('user', msg);
+    msgInput.value = '';
+    sendBtn.disabled = true;
+    msgInput.disabled = true;
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userEmail, message: msg })
+      });
+      const data = await res.json();
+      if (data.reply) {
+        addBubble('assistant', data.reply);
+      } else {
+        addBubble('assistant', t.waitMessage);
+      }
+    } catch (err) {
+      addBubble('assistant', t.networkError);
+    } finally {
+      sendBtn.disabled = false;
+      msgInput.disabled = false;
+      msgInput.focus();
+    }
+  }
+
+  function saveEmail() {
+    const email = document.getElementById('emailInput').value.trim();
+    if (!email || !email.includes('@')) { alert(t.validEmail); return; }
+    userEmail = email;
+    localStorage.setItem('hoyoyo_email', email);
+    fetch('/api/save-user-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    }).catch(() => {});
+    document.getElementById('emailModal').style.display = 'none';
+    loadLocalHistory();
+  }
+
+  function switchToHuman() {
+    if (!userEmail) { alert(t.pleaseEmail); return; }
+    const userId = btoa(userEmail);
+    window.location.href = `/human.html?email=${encodeURIComponent(userEmail)}&uid=${userId}`;
+  }
+
+  function openSuggest() {
+    if (!userEmail) { alert(t.pleaseEmail); return; }
+    const content = prompt(t.suggestPrompt);
+    if (content) {
+      fetch('/api/suggest', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email: userEmail, content }) })
+        .then(() => alert(t.suggestThanks)).catch(() => alert(t.networkError));
+    }
+  }
+
+  function openDemand() {
+    if (!userEmail) { alert(t.pleaseEmail); return; }
+    const content = prompt(t.demandPrompt);
+    if (content) {
+      fetch('/api/demand', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email: userEmail, content }) })
+        .then(() => alert(t.demandThanks)).catch(() => alert(t.networkError));
+    }
+  }
+
+  // 初始化
+  if (!userEmail) {
+    document.getElementById('emailModal').style.display = 'flex';
+  } else {
+    loadLocalHistory();
+    fetch('/api/save-user-email', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email: userEmail }) }).catch(() => {});
+  }
+</script>
+</body>
+</html>
