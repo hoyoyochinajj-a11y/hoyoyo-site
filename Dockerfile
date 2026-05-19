@@ -2,8 +2,8 @@
 # HOYOYO AI客服系统 - Docker 构建文件
 # ==========================================
 
-# 使用 Node.js 18 官方镜像
-FROM node:18-alpine
+# 使用 Node.js 20 官方镜像
+FROM node:20-alpine
 
 # 设置工作目录
 WORKDIR /app
