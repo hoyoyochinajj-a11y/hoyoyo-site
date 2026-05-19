@@ -3,86 +3,964 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HOYOYO 客服后台</title>
+<title>HOYOYO 管理后台</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
+  :root {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-card: #0f3460;
+    --bg-hover: #1a4a7a;
+    --accent-blue: #4A6CF7;
+    --accent-cyan: #20C5C5;
+    --accent-purple: #9B59B6;
+    --accent-orange: #FF7A45;
+    --accent-green: #27AE60;
+    --accent-red: #E74C3C;
+    --text-primary: #ffffff;
+    --text-secondary: #a0aec0;
+    --text-muted: #718096;
+    --border-color: #2d3748;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "Microsoft YaHei", sans-serif; background: #f0f2f5; }
-  .login-overlay { position: fixed; top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5); display:flex;align-items:center;justify-content:center;z-index:100; }
-  .login-box { background: white; padding: 30px; border-radius: 12px; text-align: center; }
-  .login-box input { padding: 10px; width: 250px; margin: 8px 0; border:1px solid #ddd; border-radius:6px; }
-  .login-box button { padding: 10px 24px; background: #4A6CF7; color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
-  .container { display: flex; height: 100vh; }
-  .sidebar { width: 200px; background: #001529; color: white; padding: 20px 0; }
-  .sidebar h2 { padding: 0 16px 20px; border-bottom: 1px solid #ffffff30; }
-  .sidebar div { padding: 12px 20px; cursor: pointer; transition: 0.2s; }
-  .sidebar div:hover, .sidebar div.active { background: #1890ff; }
-  .main { flex: 1; padding: 20px; overflow-y: auto; }
-  .chat-message { margin: 8px 0; padding: 10px; background: white; border-radius: 8px; }
-  .notification { position: fixed; top: 10px; right: 10px; background: #ff4d4f; color: white; padding: 10px 20px; border-radius: 6px; display: none; z-index: 200; }
-  .user-item { padding:10px; cursor:pointer; border-radius:6px; margin-bottom:5px; background:white; }
-  .user-item:hover { background:#e6f7ff; }
-  .user-item.active { background:#bae7ff; }
-  .note-area, .reply-area { display:flex; gap:5px; padding:10px; border-top:1px solid #eee; }
-  .note-area input, .reply-area input { flex:1; padding:6px; border:1px solid #ddd; border-radius:4px; }
-  .note-area button, .reply-area button { padding:6px 12px; border:none; border-radius:4px; cursor:pointer; }
-  .note-area button { background:#52c41a; color:white; }
-  .reply-area button { background:#FF7A45; color:white; }
-  .form-group { margin-bottom:10px; }
-  .form-group input, .form-group textarea, .form-group select { width:100%; padding:6px; margin:3px 0; border:1px solid #ddd; border-radius:4px; }
-  .btn { background:#4A6CF7; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-right:5px; }
-  .btn.danger { background:#ff4d4f; }
-  .btn.success { background:#52c41a; }
   
-  /* 管理员账号管理样式 */
-  .admin-card { background: white; padding: 15px; border-radius: 8px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-  .admin-info { flex: 1; }
-  .admin-info h4 { margin-bottom: 5px; }
-  .admin-info small { color: #666; }
-  .permission-tag { display: inline-block; padding: 2px 8px; background: #e6f7ff; border-radius: 4px; margin: 2px; font-size: 12px; }
-  .permission-tag.all { background: #fff7e6; color: #fa8c16; }
-  .modal { position: fixed; top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5); display:flex;align-items:center;justify-content:center;z-index:300; }
-  .modal-content { background: white; padding: 20px; border-radius: 12px; width: 400px; }
-  .modal-content h3 { margin-bottom: 15px; }
-  .checkbox-group { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; }
-  .checkbox-group label { display: flex; align-items: center; gap: 4px; padding: 4px 8px; background: #f5f5f5; border-radius: 4px; cursor: pointer; }
-  .checkbox-group label input { margin-right: 4px; }
+  body { 
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+    background: var(--bg-primary); 
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* 登录页面 */
+  .login-overlay { 
+    position: fixed; 
+    top: 0; left: 0; width: 100%; height: 100%; 
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    z-index: 100; 
+  }
+
+  .login-box { 
+    background: var(--bg-card); 
+    padding: 40px; 
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    width: 400px;
+    border: 1px solid var(--border-color);
+  }
+
+  .login-box .logo {
+    font-size: 48px;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .login-box h3 {
+    font-size: 24px;
+    margin-bottom: 30px;
+    color: var(--text-primary);
+  }
+
+  .login-box input { 
+    width: 100%; 
+    padding: 14px 16px; 
+    margin: 10px 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.3s;
+  }
+
+  .login-box input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.2);
+  }
+
+  .login-box input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .login-box button { 
+    width: 100%;
+    padding: 14px 24px; 
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan)); 
+    color: white; 
+    border: none; 
+    border-radius: var(--radius-sm); 
+    cursor: pointer; 
+    margin-top: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s;
+  }
+
+  .login-box button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 108, 247, 0.4);
+  }
+
+  /* 主布局 */
+  .app-container { 
+    display: flex; 
+    height: 100vh; 
+  }
+
+  /* 侧边栏 */
+  .sidebar { 
+    width: 260px; 
+    background: var(--bg-secondary); 
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+  }
+
+  .sidebar-header {
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sidebar-header .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .sidebar-header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 16px 12px;
+    overflow-y: auto;
+  }
+
+  .nav-item { 
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px; 
+    cursor: pointer; 
+    border-radius: var(--radius-sm);
+    margin-bottom: 4px;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .nav-item i {
+    width: 20px;
+    text-align: center;
+    font-size: 16px;
+  }
+
+  .nav-item:hover { 
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active { 
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+    color: white;
+    box-shadow: 0 4px 15px rgba(74, 108, 247, 0.3);
+  }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sidebar-footer .avatar {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .sidebar-footer .user-info {
+    flex: 1;
+  }
+
+  .sidebar-footer .user-info .name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .sidebar-footer .user-info .role {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* 主内容区 */
+  .main-content { 
+    flex: 1; 
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* 顶部栏 */
+  .top-bar {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+  }
+
+  .page-title {
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .top-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    gap: 8px;
+  }
+
+  .search-box input {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    width: 200px;
+    font-size: 14px;
+  }
+
+  .search-box input:focus {
+    outline: none;
+  }
+
+  .search-box i {
+    color: var(--text-muted);
+  }
+
+  /* 统计卡片 */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    padding: 24px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+  }
+
+  .stat-card .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card:nth-child(1) .stat-icon { background: rgba(74, 108, 247, 0.2); color: var(--accent-blue); }
+  .stat-card:nth-child(2) .stat-icon { background: rgba(32, 197, 197, 0.2); color: var(--accent-cyan); }
+  .stat-card:nth-child(3) .stat-icon { background: rgba(39, 174, 96, 0.2); color: var(--accent-green); }
+  .stat-card:nth-child(4) .stat-icon { background: rgba(255, 122, 69, 0.2); color: var(--accent-orange); }
+
+  .stat-card .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .stat-card .stat-label {
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .stat-card .stat-change {
+    margin-top: 12px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .stat-card .stat-change.up { color: var(--accent-green); }
+  .stat-card .stat-change.down { color: var(--accent-red); }
+
+  /* 内容面板 */
+  .content-area {
+    flex: 1;
+    display: flex;
+    padding: 0 24px 24px;
+    gap: 20px;
+    overflow: hidden;
+  }
+
+  /* 对话列表 */
+  .chat-list-panel {
+    width: 400px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .chat-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .chat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+  }
+
+  .chat-item:hover {
+    background: var(--bg-hover);
+  }
+
+  .chat-item.active {
+    background: var(--bg-hover);
+    border-left: 3px solid var(--accent-blue);
+  }
+
+  .chat-item .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .chat-item .chat-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .chat-item .chat-info .name {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chat-item .chat-info .preview {
+    color: var(--text-secondary);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chat-item .chat-meta {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .chat-item .chat-meta .time {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .chat-item .chat-meta .badge {
+    margin-top: 4px;
+    display: inline-block;
+    padding: 2px 6px;
+    background: var(--accent-blue);
+    border-radius: 10px;
+    font-size: 10px;
+  }
+
+  /* 详情面板 */
+  .detail-panel {
+    flex: 1;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .detail-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .detail-header .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .detail-header .user-info .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .detail-header .user-info .name {
+    font-weight: 600;
+  }
+
+  .detail-header .user-info .email {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .detail-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .message-bubble {
+    max-width: 80%;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .message-bubble.user {
+    background: var(--bg-hover);
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+  }
+
+  .message-bubble.agent {
+    background: linear-gradient(135deg, rgba(74, 108, 247, 0.2), rgba(32, 197, 197, 0.2));
+    border-bottom-left-radius: 4px;
+  }
+
+  .message-bubble .time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    display: block;
+  }
+
+  .detail-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 12px;
+  }
+
+  .detail-footer input {
+    flex: 1;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 14px;
+  }
+
+  .detail-footer input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+  }
+
+  .detail-footer button {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .detail-footer button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(74, 108, 247, 0.3);
+  }
+
+  /* 通用数据面板 */
+  .data-panel {
+    flex: 1;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .data-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .data-item {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-color);
+  }
+
+  .data-item .item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .data-item .item-header .email {
+    font-weight: 600;
+    color: var(--accent-cyan);
+  }
+
+  .data-item .item-header .time {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .data-item .item-content {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .data-item .item-content .label {
+    color: var(--text-secondary);
+    margin-right: 8px;
+  }
+
+  /* 表单样式 */
+  .form-section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 14px;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  /* 按钮 */
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+    color: white;
+  }
+
+  .btn-success {
+    background: var(--accent-green);
+    color: white;
+  }
+
+  .btn-danger {
+    background: var(--accent-red);
+    color: white;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+
+  /* 管理员卡片 */
+  .admin-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .admin-info h4 {
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .admin-info small {
+    color: var(--text-muted);
+  }
+
+  .permission-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    background: rgba(74, 108, 247, 0.2);
+    border-radius: 20px;
+    margin: 4px 4px 4px 0;
+    font-size: 12px;
+    color: var(--accent-blue);
+  }
+
+  .permission-tag.all {
+    background: rgba(255, 122, 69, 0.2);
+    color: var(--accent-orange);
+  }
+
+  /* 模态框 */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+  }
+
+  .modal-content {
+    background: var(--bg-card);
+    padding: 24px;
+    border-radius: var(--radius);
+    width: 450px;
+    max-width: 90%;
+    border: 1px solid var(--border-color);
+  }
+
+  .modal-content h3 {
+    margin-bottom: 20px;
+    font-size: 20px;
+  }
+
+  .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+  }
+
+  .checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+  }
+
+  .checkbox-group label:hover {
+    border-color: var(--accent-blue);
+  }
+
+  .checkbox-group label input {
+    margin-right: 4px;
+    accent-color: var(--accent-blue);
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  /* 通知 */
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--accent-red);
+    color: white;
+    padding: 14px 24px;
+    border-radius: var(--radius-sm);
+    display: none;
+    z-index: 200;
+    box-shadow: var(--shadow);
+  }
+
+  /* 空状态 */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+  }
+
+  .empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  /* 滚动条 */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+
+  /* 响应式 */
+  @media (max-width: 1200px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .chat-list-panel {
+      width: 320px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 70px;
+    }
+    .sidebar-header h1,
+    .nav-item span,
+    .sidebar-footer .user-info {
+      display: none;
+    }
+    .nav-item {
+      justify-content: center;
+      padding: 14px;
+    }
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    .content-area {
+      flex-direction: column;
+    }
+    .chat-list-panel {
+      width: 100%;
+    }
+  }
 </style>
 </head>
 <body>
+
+<!-- 登录页面 -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-box">
-    <h3>🔐 管理员登录</h3>
+    <div class="logo"><i class="fas fa-cube"></i></div>
+    <h3>HOYOYO 管理后台</h3>
     <input type="text" id="usernameInput" placeholder="请输入账号" />
     <input type="password" id="passwordInput" placeholder="请输入密码" />
-    <button onclick="login()">进入后台</button>
+    <button onclick="login()"><i class="fas fa-sign-in-alt"></i> 登录系统</button>
   </div>
 </div>
+
+<!-- 通知 -->
 <div class="notification" id="notification"></div>
 
-<div class="container">
-  <div class="sidebar" id="sidebar">
-    <h2>📊 HOYOYO 5.0</h2>
-    <div onclick="switchPanel('ai-chats')" class="active">AI 对话记录</div>
-    <div onclick="switchPanel('suggests')">建议列表</div>
-    <div onclick="switchPanel('demands')">需求列表</div>
-    <div onclick="switchPanel('human')">👥 人工客服</div>
-    <div onclick="switchPanel('emails')">📧 用户邮箱</div>
-    <div onclick="switchPanel('knowledge')">📚 知识库</div>
-    <div onclick="switchPanel('rules')">📋 规则管理</div>
-    <div onclick="switchPanel('unanswered')">🤔 疑难记录</div>
-    <div onclick="switchPanel('learn')">🌐 学习URL</div>
-    <div onclick="switchPanel('admins')">👤 管理员账号</div>
+<!-- 主应用 -->
+<div class="app-container" id="appContainer" style="display:none;">
+  <!-- 侧边栏 -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-icon"><i class="fas fa-cube"></i></div>
+      <h1>HOYOYO</h1>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <div class="nav-item active" data-panel="dashboard" onclick="switchPanel('dashboard')">
+        <i class="fas fa-th-large"></i>
+        <span>控制台</span>
+      </div>
+      <div class="nav-item" data-panel="ai-chats" onclick="switchPanel('ai-chats')">
+        <i class="fas fa-robot"></i>
+        <span>AI对话记录</span>
+      </div>
+      <div class="nav-item" data-panel="suggests" onclick="switchPanel('suggests')">
+        <i class="fas fa-lightbulb"></i>
+        <span>建议列表</span>
+      </div>
+      <div class="nav-item" data-panel="demands" onclick="switchPanel('demands')">
+        <i class="fas fa-clipboard-list"></i>
+        <span>需求列表</span>
+      </div>
+      <div class="nav-item" data-panel="human" onclick="switchPanel('human')">
+        <i class="fas fa-headset"></i>
+        <span>人工客服</span>
+      </div>
+      <div class="nav-item" data-panel="emails" onclick="switchPanel('emails')">
+        <i class="fas fa-envelope"></i>
+        <span>用户邮箱</span>
+      </div>
+      <div class="nav-item" data-panel="knowledge" onclick="switchPanel('knowledge')">
+        <i class="fas fa-book"></i>
+        <span>知识库</span>
+      </div>
+      <div class="nav-item" data-panel="rules" onclick="switchPanel('rules')">
+        <i class="fas fa-gavel"></i>
+        <span>规则管理</span>
+      </div>
+      <div class="nav-item" data-panel="unanswered" onclick="switchPanel('unanswered')">
+        <i class="fas fa-question-circle"></i>
+        <span>疑难记录</span>
+      </div>
+      <div class="nav-item" data-panel="admins" onclick="switchPanel('admins')">
+        <i class="fas fa-user-shield"></i>
+        <span>管理员账号</span>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="avatar" id="userAvatar">A</div>
+      <div class="user-info">
+        <div class="name" id="userName">Admin</div>
+        <div class="role" id="userRole">超级管理员</div>
+      </div>
+    </div>
   </div>
-  <div class="main" id="mainContent"></div>
+
+  <!-- 主内容 -->
+  <div class="main-content">
+    <div id="mainPanel"></div>
+  </div>
 </div>
 
 <script>
-  let currentPanel = 'ai-chats';
+  let currentPanel = 'dashboard';
   let selectedUserId = null;
   let humanRefresh = null;
   let panelRefresh = null;
-  let currentAdmin = null; // 当前登录的管理员信息
+  let currentAdmin = null;
 
+  // 登录
   async function login() {
     const username = document.getElementById('usernameInput').value.trim();
     const pwd = document.getElementById('passwordInput').value;
@@ -93,18 +971,24 @@
     }
     
     const res = await fetch('/api/login', { 
-      method:'POST', 
-      headers:{'Content-Type':'application/json'}, 
-      body:JSON.stringify({ username, password: pwd }) 
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' }, 
+      body: JSON.stringify({ username, password: pwd }) 
     });
     
     if (res.ok) {
       const data = await res.json();
       currentAdmin = data.admin;
       document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('appContainer').style.display = 'flex';
       
-      // 根据权限显示/隐藏菜单
+      // 更新用户信息
+      document.getElementById('userName').textContent = currentAdmin.username;
+      document.getElementById('userAvatar').textContent = currentAdmin.username.charAt(0).toUpperCase();
+      document.getElementById('userRole').textContent = currentAdmin.role === 'superadmin' ? '超级管理员' : '管理员';
+      
       applyPermissions();
+      loadPanel('dashboard');
       startRefresh();
     } else {
       const err = await res.json();
@@ -112,35 +996,36 @@
     }
   }
 
+  // 应用权限
   function applyPermissions() {
     if (!currentAdmin) return;
     const permissions = currentAdmin.permissions || [];
     const isSuperAdmin = currentAdmin.role === 'superadmin' || permissions.includes('all');
     
-    const menuItems = document.querySelectorAll('.sidebar div');
-    const panels = ['ai-chats', 'suggests', 'demands', 'human', 'emails', 'knowledge', 'rules', 'unanswered', 'learn', 'admins'];
+    const panels = ['dashboard', 'ai-chats', 'suggests', 'demands', 'human', 'emails', 'knowledge', 'rules', 'unanswered', 'admins'];
     
-    menuItems.forEach((item, idx) => {
+    document.querySelectorAll('.nav-item').forEach((item, idx) => {
       const panelName = panels[idx];
-      if (panelName === 'admins') {
-        // 只有超级管理员才能看到管理员账号管理
-        item.style.display = isSuperAdmin ? 'block' : 'none';
+      if (panelName === 'admins' || panelName === 'dashboard') {
+        item.style.display = isSuperAdmin ? 'flex' : (panelName === 'dashboard' ? 'flex' : 'none');
       } else if (!isSuperAdmin) {
-        // 非超级管理员根据权限显示
-        item.style.display = permissions.includes(panelName) ? 'block' : 'none';
+        item.style.display = permissions.includes(panelName) ? 'flex' : 'none';
       } else {
-        item.style.display = 'block';
+        item.style.display = 'flex';
       }
     });
   }
 
+  // 切换面板
   function switchPanel(name) {
     currentPanel = name;
     if (humanRefresh) { clearInterval(humanRefresh); humanRefresh = null; }
     if (panelRefresh) { clearInterval(panelRefresh); panelRefresh = null; }
-    document.querySelectorAll('.sidebar div').forEach(d => d.classList.remove('active'));
-    const idx = ['ai-chats','suggests','demands','human','emails','knowledge','rules','unanswered','learn','admins'].indexOf(name);
-    if (idx >= 0) document.querySelectorAll('.sidebar div')[idx].classList.add('active');
+    
+    document.querySelectorAll('.nav-item').forEach(d => d.classList.remove('active'));
+    const item = document.querySelector(`.nav-item[data-panel="${name}"]`);
+    if (item) item.classList.add('active');
+    
     loadPanel(name);
   }
 
@@ -150,282 +1035,681 @@
     return res.json();
   }
 
+  // 加载面板
   async function loadPanel(name) {
-    const main = document.getElementById('mainContent');
-    main.innerHTML = '加载中...';
+    const main = document.getElementById('mainPanel');
+    
     try {
-      if (name === 'ai-chats') {
-        main.innerHTML = '<h3>AI 对话记录</h3><div id="list"></div>';
-        const data = await fetchJSON('/api/ai-chats');
-        document.getElementById('list').innerHTML = data.map(c => `<div class="chat-message"><b>${c.email}</b> <small>${new Date(c.time).toLocaleString()}</small><br><b>问：</b>${c.message}<br><b>答：</b>${c.reply}</div>`).join('');
+      if (name === 'dashboard') {
+        await loadDashboard(main);
+      }
+      else if (name === 'ai-chats') {
+        await loadAIChats(main);
       }
       else if (name === 'suggests') {
-        main.innerHTML = '<h3>建议列表</h3><div id="list"></div>';
-        const data = await fetchJSON('/api/suggests');
-        document.getElementById('list').innerHTML = data.map(s => `<div class="chat-message"><b>${s.email}</b> <small>${new Date(s.time).toLocaleString()}</small><br>${s.content}</div>`).join('');
+        await loadSuggests(main);
       }
       else if (name === 'demands') {
-        main.innerHTML = '<h3>需求列表</h3><div id="list"></div>';
-        const data = await fetchJSON('/api/demands');
-        document.getElementById('list').innerHTML = data.map(d => `<div class="chat-message"><b>${d.email}</b> <small>${new Date(d.time).toLocaleString()}</small><br>${d.content}</div>`).join('');
+        await loadDemands(main);
       }
       else if (name === 'human') {
-        main.innerHTML = `<div style="display:flex; height:calc(100vh - 80px);">
-          <div style="width:250px; border-right:1px solid #eee; overflow-y:auto; padding:10px;" id="userList"></div>
-          <div style="flex:1; display:flex; flex-direction:column;">
-            <div style="font-weight:bold; padding:10px; background:#eee;" id="chatTitle">请选择用户</div>
-            <div style="flex:1; overflow-y:auto; padding:10px; background:#fff;" id="humanChatBox"></div>
-            <div class="note-area"><input type="text" id="noteInput" placeholder="添加备注..."><button onclick="saveNote()">保存备注</button></div>
-            <div class="reply-area"><input type="text" id="humanReplyInput" placeholder="输入回复..." onkeypress="if(event.keyCode==13) sendReply()"><button onclick="sendReply()">发送</button></div>
-          </div>
-        </div>`;
-        if (humanRefresh) clearInterval(humanRefresh);
-        humanRefresh = setInterval(() => { if (currentPanel === 'human') refreshHumanData(); }, 3000);
-        await refreshHumanData();
+        await loadHumanChats(main);
       }
       else if (name === 'emails') {
-        main.innerHTML = '<h3>用户邮箱</h3><div id="list"></div>';
-        const data = await fetchJSON('/api/user-email-list');
-        document.getElementById('list').innerHTML = data.map(e => `<div class="chat-message">📧 ${e.email} - ${new Date(e.time).toLocaleString()}</div>`).join('');
+        await loadEmails(main);
       }
       else if (name === 'knowledge') {
-        if (!document.getElementById('kbList')) {
-          main.innerHTML = `<h3>知识库</h3>
-            <div class="form-group"><input id="kbQ" placeholder="问题"><textarea id="kbA" placeholder="答案" rows="3"></textarea><input id="kbKw" placeholder="关键词(逗号分隔)"><button class="btn" onclick="addKB()">添加</button></div>
-            <div id="kbList"></div>`;
-        }
-        if (panelRefresh) clearInterval(panelRefresh);
-        panelRefresh = setInterval(() => { if (currentPanel === 'knowledge') refreshKBListOnly(); }, 5000);
-        await refreshKBListOnly();
+        await loadKnowledge(main);
       }
       else if (name === 'rules') {
-        if (!document.getElementById('ruleList')) {
-          main.innerHTML = `<h3>规则管理</h3>
-            <div class="form-group"><textarea id="ruleContent" placeholder="规则内容" rows="3"></textarea><button class="btn" onclick="addRule()">添加规则</button></div>
-            <div id="ruleList"></div>`;
-        }
-        if (panelRefresh) clearInterval(panelRefresh);
-        panelRefresh = setInterval(() => { if (currentPanel === 'rules') refreshRuleListOnly(); }, 5000);
-        await refreshRuleListOnly();
+        await loadRules(main);
       }
       else if (name === 'unanswered') {
-        if (!document.getElementById('unansweredList')) {
-          main.innerHTML = `<h3>🤔 疑难记录</h3><div id="unansweredList"></div>`;
-        }
-        if (panelRefresh) clearInterval(panelRefresh);
-        panelRefresh = setInterval(() => { if (currentPanel === 'unanswered') refreshUnansweredOnly(); }, 5000);
-        await refreshUnansweredOnly();
-      }
-      else if (name === 'learn') {
-        if (!document.getElementById('learnList')) {
-          main.innerHTML = `<h3>🌐 学习URL</h3>
-            <div class="form-group"><input type="text" id="learnUrl" placeholder="输入网页URL，AI将抓取并学习内容"><button class="btn" onclick="submitLearn()">提交</button></div>
-            <div id="learnList"></div>`;
-        }
-        if (panelRefresh) clearInterval(panelRefresh);
-        panelRefresh = setInterval(() => { if (currentPanel === 'learn') refreshLearnOnly(); }, 5000);
-        await refreshLearnOnly();
+        await loadUnanswered(main);
       }
       else if (name === 'admins') {
-        main.innerHTML = `<h3>👤 管理员账号管理</h3>
-          <p style="margin:10px 0;color:#666;">创建子账号并分配权限，不同管理员只能访问被授权的功能模块。</p>
-          <button class="btn success" onclick="showAddAdminModal()" style="margin-bottom:15px;">+ 添加管理员</button>
-          <div id="adminList"></div>`;
-        await refreshAdminList();
+        await loadAdmins(main);
       }
-    } catch(e) { main.innerHTML = '<p style="color:red">加载失败</p>'; }
+    } catch(e) {
+      main.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>加载失败</p></div>`;
+    }
   }
 
-  // ────── 人工客服局部刷新 ──────
-  async function refreshHumanData() { await loadUsers(); if (selectedUserId) await loadChat(); }
-  async function loadUsers() {
-    const div = document.getElementById('userList');
-    if (!div) return;
-    const users = await fetchJSON('/api/human-user-list');
-    div.innerHTML = users.map(u => `<div class="user-item ${u.userId===selectedUserId?'active':''}" onclick="selectUser('${u.userId}')"><strong>${u.email||atob(u.userId)}</strong><br><small>未读:${u.unread}</small></div>`).join('');
+  // 控制台
+  async function loadDashboard(container) {
+    const chats = await fetchJSON('/api/ai-chats');
+    const emails = await fetchJSON('/api/user-email-list');
+    const unanswered = await fetchJSON('/api/unanswered');
+    
+    // 计算今日数据
+    const today = new Date().toDateString();
+    const todayChats = chats.filter(c => new Date(c.time).toDateString() === today);
+    const activeUsers = new Set(chats.slice(0, 100).map(c => c.email)).size;
+    
+    container.innerHTML = `
+      <div class="top-bar">
+        <h2 class="page-title">控制台</h2>
+        <div class="top-actions">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="搜索...">
+          </div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-comments"></i></div>
+          <div class="stat-value">${todayChats.length}</div>
+          <div class="stat-label">今日对话量</div>
+          <div class="stat-change up"><i class="fas fa-arrow-up"></i> 较昨日</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-users"></i></div>
+          <div class="stat-value">${activeUsers}</div>
+          <div class="stat-label">活跃用户</div>
+          <div class="stat-change up"><i class="fas fa-arrow-up"></i> 活跃中</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-smile"></i></div>
+          <div class="stat-value">95%</div>
+          <div class="stat-label">满意度</div>
+          <div class="stat-change up"><i class="fas fa-arrow-up"></i> 优秀</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon"><i class="fas fa-clock"></i></div>
+          <div class="stat-value">${unanswered.length}</div>
+          <div class="stat-label">待处理</div>
+          <div class="stat-change down"><i class="fas fa-arrow-down"></i> 疑难问题</div>
+        </div>
+      </div>
+      <div class="content-area">
+        <div class="chat-list-panel">
+          <div class="panel-header">
+            <span>最近对话</span>
+            <span style="color: var(--accent-cyan);">${chats.length} 条</span>
+          </div>
+          <div class="chat-list" id="recentChats"></div>
+        </div>
+        <div class="detail-panel">
+          <div class="panel-header">
+            <span>系统概览</span>
+          </div>
+          <div class="detail-content">
+            <div style="text-align: center; padding: 40px;">
+              <i class="fas fa-chart-line" style="font-size: 64px; color: var(--accent-blue); margin-bottom: 20px;"></i>
+              <h3 style="margin-bottom: 10px;">欢迎使用 HOYOYO 管理后台</h3>
+              <p style="color: var(--text-secondary);">左侧菜单可切换不同功能模块</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // 渲染最近对话
+    const recentDiv = document.getElementById('recentChats');
+    recentDiv.innerHTML = chats.slice(0, 20).map(c => `
+      <div class="chat-item">
+        <div class="avatar">${c.email.charAt(0).toUpperCase()}</div>
+        <div class="chat-info">
+          <div class="name">${c.email}</div>
+          <div class="preview">${c.message.substring(0, 30)}...</div>
+        </div>
+        <div class="chat-meta">
+          <div class="time">${formatTime(c.time)}</div>
+        </div>
+      </div>
+    `).join('');
   }
-  async function selectUser(uid) {
+
+  // AI对话记录
+  async function loadAIChats(container) {
+    const chats = await fetchJSON('/api/ai-chats');
+    
+    container.innerHTML = `
+      <div class="top-bar">
+        <h2 class="page-title">AI 对话记录</h2>
+        <div class="top-actions">
+          <span style="color: var(--text-secondary);">共 ${chats.length} 条记录</span>
+        </div>
+      </div>
+      <div class="content-area">
+        <div class="chat-list-panel">
+          <div class="panel-header">对话列表</div>
+          <div class="chat-list" id="chatList"></div>
+        </div>
+        <div class="detail-panel">
+          <div class="panel-header">
+            <span id="detailTitle">选择对话查看详情</span>
+          </div>
+          <div class="detail-content" id="chatDetail">
+            <div class="empty-state">
+              <i class="fas fa-comments"></i>
+              <p>选择左侧对话查看详情</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    const listDiv = document.getElementById('chatList');
+    listDiv.innerHTML = chats.map((c, idx) => `
+      <div class="chat-item" onclick="showChatDetail(${idx})">
+        <div class="avatar">${c.email.charAt(0).toUpperCase()}</div>
+        <div class="chat-info">
+          <div class="name">${c.email}</div>
+          <div class="preview">${c.message.substring(0, 30)}...</div>
+        </div>
+        <div class="chat-meta">
+          <div class="time">${formatTime(c.time)}</div>
+        </div>
+      </div>
+    `).join('');
+    
+    window.aiChatsData = chats;
+  }
+
+  function showChatDetail(idx) {
+    const chat = window.aiChatsData[idx];
+    document.getElementById('detailTitle').textContent = chat.email;
+    document.getElementById('chatDetail').innerHTML = `
+      <div class="message-bubble user">
+        <strong>用户:</strong> ${chat.message}
+        <span class="time">${formatTime(chat.time)}</span>
+      </div>
+      <div class="message-bubble agent">
+        <strong>AI:</strong> ${chat.reply}
+        <span class="time">${formatTime(chat.time)}</span>
+      </div>
+    `;
+  }
+
+  // 建议列表
+  async function loadSuggests(container) {
+    const data = await fetchJSON('/api/suggests');
+    
+    container.innerHTML = `
+      <div class="top-bar">
+        <h2 class="page-title">建议列表</h2>
+        <span style="color: var(--text-secondary);">共 ${data.length} 条</span>
+      </div>
+      <div class="content-area">
+        <div class="data-panel">
+          <div class="data-content" id="suggestList"></div>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('suggestList').innerHTML = data.map(s => `
+      <div class="data-item">
+        <div class="item-header">
+          <span class="email"><i class="fas fa-user"></i> ${s.email}</span>
+          <span class="time">${formatTime(s.time)}</span>
+        </div>
+        <div class="item-content">${s.content}</div>
+      </div>
+    `).join('') || '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无数据</p></div>';
+  }
+
+  // 需求列表
+  async function loadDemands(container) {
+    const data = await fetchJSON('/api/demands');
+    
+    container.innerHTML = `
+      <div class="top-bar">
+        <h2 class="page-title">需求列表</h2>
+        <span style="color: var(--text-secondary);">共 ${data.length} 条</span>
+      </div>
+      <div class="content-area">
+        <div class="data-panel">
+          <div class="data-content" id="demandList"></div>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('demandList').innerHTML = data.map(d => `
+      <div class="data-item">
+        <div class="item-header">
+          <span class="email"><i class="fas fa-user"></i> ${d.email}</span>
+          <span class="time">${formatTime(d.time)}</span>
+        </div>
+        <div class="item-content">${d.content}</div>
+      </div>
+    `).join('') || '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无数据</p></div>';
+  }
+
+  // 人工客服
+  async function loadHumanChats(container) {
+    container.innerHTML = `
+      <div class="top-bar">
+        <h2 class="page-title">人工客服</h2>
+      </div>
+      <div class="content-area">
+        <div class="chat-list-panel">
+          <div class="panel-header">用户列表</div>
+          <div class="chat-list" id="humanUserList"></div>
+        </div>
+        <div class="detail-panel">
+          <div class="detail-header">
+            <div class="user-info">
+              <div class="avatar" id="humanAvatar">?</div>
+              <div>
+                <div class="name" id="humanName">选择用户</div>
+                <div class="email" id="humanEmail"></div>
+              </div>
+            </div>
+          </div>
+          <div class="detail-content" id="humanChatBox">
+            <div class="empty-state">
+              <i class="fas fa-comments"></i>
+              <p>选择用户开始对话</p>
+            </div>
+          </div>
+          <div class="detail-footer">
+            <input type="text" id="humanReplyInput" placeholder="输入回复..." onkeypress="if(event.keyCode==13) sendHumanReply()">
+            <button onclick="sendHumanReply()"><i class="fas fa-paper-plane"></i> 发送</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    if (humanRefresh) clearInterval(humanRefresh);
+    humanRefresh = setInterval(() => { if (currentPanel === 'human') refreshHumanData(); }, 3000);
+    await refreshHumanData();
+  }
+
+  async function refreshHumanData() {
+    await loadHumanUsers();
+    if (selectedUserId) await loadHumanChat();
+  }
+
+  async function loadHumanUsers() {
+    const div = document.getElementById('humanUserList');
+    if (!div) return;
+    
+    const users = await fetchJSON('/api/human-user-list');
+    div.innerHTML = users.map(u => `
+      <div class="chat-item ${u.userId === selectedUserId ? 'active' : ''}" onclick="selectHumanUser('${u.userId}')">
+        <div class="avatar">${(u.email || atob(u.userId)).charAt(0).toUpperCase()}</div>
+        <div class="chat-info">
+          <div class="name">${u.email || atob(u.userId)}</div>
+          <div class="preview">最后活跃: ${u.lastActive ? formatTime(u.lastActive) : '-'}</div>
+        </div>
+        ${u.unread > 0 ? `<div class="chat-meta"><div class="badge">${u.unread}</div></div>` : ''}
+      </div>
+    `).join('') || '<div class="empty-state"><i class="fas fa-users"></i><p>暂无用户</p></div>';
+  }
+
+  async function selectHumanUser(uid) {
     selectedUserId = uid;
     const users = await fetchJSON('/api/human-user-list');
     const user = users.find(u => u.userId === uid);
-    document.getElementById('chatTitle').innerText = `与 ${user?.email || atob(uid)} 对话中`;
-    await loadChat();
-    await loadNote();
+    
+    const name = user?.email || atob(uid);
+    document.getElementById('humanName').textContent = name;
+    document.getElementById('humanEmail').textContent = user?.email || '';
+    document.getElementById('humanAvatar').textContent = name.charAt(0).toUpperCase();
+    
+    await loadHumanChat();
+    await loadHumanUsers();
   }
-  async function loadChat() {
+
+  async function loadHumanChat() {
     const box = document.getElementById('humanChatBox');
     if (!box || !selectedUserId) return;
+    
     const data = await fetchJSON(`/api/human-history?userId=${selectedUserId}`);
-    box.innerHTML = data.messages.map(m => `<div style="text-align:${m.sender==='agent'?'left':'right'}; margin:4px;"><div style="display:inline-block;max-width:75%;padding:8px 12px;border-radius:12px;background:${m.sender==='agent'?'#f0f0f0':'#FF7A45'};">${m.content}<br><small>${new Date(m.time).toLocaleTimeString()}</small></div></div>`).join('');
+    box.innerHTML = data.messages.map(m => `
+      <div class="message-bubble ${m.sender === 'agent' ? 'user' : 'agent'}">
+        ${m.content}
+        <span class="time">${formatTime(m.time)}</span>
+      </div>
+    `).join('') || '<div class="empty-state"><i class="fas fa-comments"></i><p>暂无消息</p></div>';
     box.scrollTop = box.scrollHeight;
   }
-  async function sendReply() {
+
+  async function sendHumanReply() {
     if (!selectedUserId) return alert('请先选择用户');
     const input = document.getElementById('humanReplyInput');
     if (!input) return;
     const msg = input.value.trim();
     if (!msg) return;
-    await fetchJSON('/api/human-reply', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId: selectedUserId, message: msg }) });
+    
+    await fetchJSON('/api/human-reply', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: selectedUserId, message: msg })
+    });
     input.value = '';
-    await loadChat();
-  }
-  async function loadNote() {
-    const input = document.getElementById('noteInput');
-    if (!input || !selectedUserId) return;
-    try { const data = await fetchJSON(`/api/human-note?userId=${selectedUserId}`); input.value = data.note || ''; } catch(e) {}
-  }
-  async function saveNote() {
-    if (!selectedUserId) return;
-    const input = document.getElementById('noteInput');
-    await fetchJSON('/api/human-note', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId: selectedUserId, note: input.value.trim() }) });
-    alert('已保存');
+    await loadHumanChat();
   }
 
-  // ────── 知识库 ──────
+  // 用户邮箱
+  async function loadEmails(container) {
+    const data = await fetchJSON('/api/user-email-list');
+    
+    container.innerHTML = `
+      <div class="top-bar">
+        <h2 class="page-title">用户邮箱</h2>
+        <span style="color: var(--text-secondary);">共 ${data.length} 个</span>
+      </div>
+      <div class="content-area">
+        <div class="data-panel">
+          <div class="data-content" id="emailList"></div>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('emailList').innerHTML = data.map(e => `
+      <div class="data-item">
+        <div class="item-header">
+          <span class="email"><i class="fas fa-envelope"></i> ${e.email}</span>
+          <span class="time">${formatTime(e.time)}</span>
+        </div>
+      </div>
+    `).join('') || '<div class="empty-state"><i class="fas fa-inbox"></i><p>暂无数据</p></div>';
+  }
+
+  // 知识库
+  async function loadKnowledge(container) {
+    const data = await fetchJSON('/api/kb/list');
+    
+    container.innerHTML = `
+      <div class="top-bar">
+        <h2 class="page-title">知识库</h2>
+      </div>
+      <div class="content-area">
+        <div class="data-panel">
+          <div class="form-section">
+            <div class="form-group">
+              <label>问题</label>
+              <input type="text" id="kbQ" placeholder="输入问题">
+            </div>
+            <div class="form-group">
+              <label>答案</label>
+              <textarea id="kbA" placeholder="输入答案"></textarea>
+            </div>
+            <div class="form-group">
+              <label>关键词（逗号分隔）</label>
+              <input type="text" id="kbKw" placeholder="关键词1, 关键词2">
+            </div>
+            <button class="btn btn-primary" onclick="addKB()"><i class="fas fa-plus"></i> 添加</button>
+          </div>
+          <div class="data-content" id="kbList"></div>
+        </div>
+      </div>
+    `;
+    
+    renderKBList(data);
+    
+    if (panelRefresh) clearInterval(panelRefresh);
+    panelRefresh = setInterval(async () => {
+      if (currentPanel === 'knowledge') {
+        const data = await fetchJSON('/api/kb/list');
+        renderKBList(data);
+      }
+    }, 5000);
+  }
+
+  function renderKBList(data) {
+    const div = document.getElementById('kbList');
+    if (!div) return;
+    div.innerHTML = data.map(item => `
+      <div class="data-item">
+        <div class="item-header">
+          <span class="email"><i class="fas fa-question"></i> ${item.question}</span>
+          <button class="btn btn-danger" onclick="deleteKB('${item.id}')"><i class="fas fa-trash"></i></button>
+        </div>
+        <div class="item-content">${item.answer}</div>
+      </div>
+    `).join('') || '<div class="empty-state"><i class="fas fa-book"></i><p>暂无知识</p></div>';
+  }
+
   async function addKB() {
     const q = document.getElementById('kbQ').value.trim();
     const a = document.getElementById('kbA').value.trim();
-    const kw = document.getElementById('kbKw').value.split(',').map(k=>k.trim()).filter(Boolean);
+    const kw = document.getElementById('kbKw').value.split(',').map(k => k.trim()).filter(Boolean);
     if (!q || !a) return alert('问题和答案不能为空');
-    await fetchJSON('/api/kb/add', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ question: q, answer: a, keywords: kw }) });
+    
+    await fetchJSON('/api/kb/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q, answer: a, keywords: kw })
+    });
+    
     document.getElementById('kbQ').value = '';
     document.getElementById('kbA').value = '';
     document.getElementById('kbKw').value = '';
-    await refreshKBListOnly();
+    
+    const data = await fetchJSON('/api/kb/list');
+    renderKBList(data);
   }
-  async function refreshKBListOnly() {
-    const list = await fetchJSON('/api/kb/list');
-    const div = document.getElementById('kbList');
-    if (div) {
-      div.innerHTML = list.map(item => `<div class="chat-message"><b>Q:</b> ${item.question}<br><b>A:</b> ${item.answer}<button class="btn danger" onclick="deleteKB('${item.id}')" style="float:right">删除</button></div>`).join('');
-    }
-  }
-  async function deleteKB(id) { await fetch(`/api/kb/delete/${id}`, { method:'DELETE' }); await refreshKBListOnly(); }
 
-  // ────── 规则管理 ──────
+  async function deleteKB(id) {
+    await fetch(`/api/kb/delete/${id}`, { method: 'DELETE' });
+    const data = await fetchJSON('/api/kb/list');
+    renderKBList(data);
+  }
+
+  // 规则管理
+  async function loadRules(container) {
+    const data = await fetchJSON('/api/rules');
+    
+    container.innerHTML = `
+      <div class="top-bar">
+        <h2 class="page-title">规则管理</h2>
+      </div>
+      <div class="content-area">
+        <div class="data-panel">
+          <div class="form-section">
+            <div class="form-group">
+              <label>规则内容</label>
+              <textarea id="ruleContent" placeholder="输入AI规则，将添加到系统提示词中"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="addRule()"><i class="fas fa-plus"></i> 添加规则</button>
+          </div>
+          <div class="data-content" id="ruleList"></div>
+        </div>
+      </div>
+    `;
+    
+    renderRuleList(data);
+    
+    if (panelRefresh) clearInterval(panelRefresh);
+    panelRefresh = setInterval(async () => {
+      if (currentPanel === 'rules') {
+        const data = await fetchJSON('/api/rules');
+        renderRuleList(data);
+      }
+    }, 5000);
+  }
+
+  function renderRuleList(data) {
+    const div = document.getElementById('ruleList');
+    if (!div) return;
+    div.innerHTML = data.map(r => `
+      <div class="data-item">
+        <div class="item-header">
+          <span class="time">${formatTime(r.createdAt)}</span>
+          <button class="btn btn-danger" onclick="deleteRule('${r.id}')"><i class="fas fa-trash"></i></button>
+        </div>
+        <div class="item-content">${r.content}</div>
+      </div>
+    `).join('') || '<div class="empty-state"><i class="fas fa-gavel"></i><p>暂无规则</p></div>';
+  }
+
   async function addRule() {
     const content = document.getElementById('ruleContent').value.trim();
     if (!content) return alert('请输入规则内容');
-    await fetchJSON('/api/rules/add', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ content }) });
+    
+    await fetchJSON('/api/rules/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content })
+    });
+    
     document.getElementById('ruleContent').value = '';
-    await refreshRuleListOnly();
+    const data = await fetchJSON('/api/rules');
+    renderRuleList(data);
   }
-  async function refreshRuleListOnly() {
-    const rules = await fetchJSON('/api/rules');
-    const div = document.getElementById('ruleList');
-    if (div) {
-      div.innerHTML = rules.map(r => `<div class="chat-message"><p>${r.content}</p><button class="btn danger" onclick="deleteRule('${r.id}')">删除</button></div>`).join('');
-    }
-  }
-  async function deleteRule(id) { await fetch(`/api/rules/${id}`, { method:'DELETE' }); await refreshRuleListOnly(); }
 
-  // ────── 疑难记录 ──────
-  async function refreshUnansweredOnly() {
-    const list = await fetchJSON('/api/unanswered');
+  async function deleteRule(id) {
+    await fetch(`/api/rules/${id}`, { method: 'DELETE' });
+    const data = await fetchJSON('/api/rules');
+    renderRuleList(data);
+  }
+
+  // 疑难记录
+  async function loadUnanswered(container) {
+    const data = await fetchJSON('/api/unanswered');
+    
+    container.innerHTML = `
+      <div class="top-bar">
+        <h2 class="page-title">疑难记录</h2>
+        <span style="color: var(--text-secondary);">共 ${data.length} 条</span>
+      </div>
+      <div class="content-area">
+        <div class="data-panel">
+          <div class="data-content" id="unansweredList"></div>
+        </div>
+      </div>
+    `;
+    
+    renderUnansweredList(data);
+    
+    if (panelRefresh) clearInterval(panelRefresh);
+    panelRefresh = setInterval(async () => {
+      if (currentPanel === 'unanswered') {
+        const data = await fetchJSON('/api/unanswered');
+        renderUnansweredList(data);
+      }
+    }, 5000);
+  }
+
+  function renderUnansweredList(data) {
     const div = document.getElementById('unansweredList');
-    if (div) {
-      div.innerHTML = list.map(item => `<div class="chat-message"><b>${item.email}</b> <small>${new Date(item.time).toLocaleString()}</small><br>${item.question}<button class="btn danger" onclick="deleteUnanswered('${item.id}')" style="float:right">删除</button></div>`).join('');
-    }
+    if (!div) return;
+    div.innerHTML = data.map(item => `
+      <div class="data-item">
+        <div class="item-header">
+          <span class="email"><i class="fas fa-user"></i> ${item.email}</span>
+          <div>
+            <span class="time">${formatTime(item.time)}</span>
+            <button class="btn btn-danger" onclick="deleteUnanswered('${item.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+        <div class="item-content">${item.question}</div>
+      </div>
+    `).join('') || '<div class="empty-state"><i class="fas fa-check-circle"></i><p>暂无疑难问题</p></div>';
   }
-  async function deleteUnanswered(id) { await fetch(`/api/unanswered/${id}`, { method:'DELETE' }); await refreshUnansweredOnly(); }
 
-  // ────── 学习URL ──────
-  async function submitLearn() {
-    const url = document.getElementById('learnUrl').value.trim();
-    if (!url) return alert('请输入URL');
-    await fetchJSON('/api/kb/learn-url', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ url }) });
-    document.getElementById('learnUrl').value = '';
-    await refreshLearnOnly();
+  async function deleteUnanswered(id) {
+    await fetch(`/api/unanswered/${id}`, { method: 'DELETE' });
+    const data = await fetchJSON('/api/unanswered');
+    renderUnansweredList(data);
   }
-  async function refreshLearnOnly() {
-    const list = await fetchJSON('/api/kb/learned-list');
-    const div = document.getElementById('learnList');
-    if (div) {
-      div.innerHTML = list.map(p => `<div class="chat-message"><b>${p.title}</b><br><small>${p.url}</small><br>${p.content.substring(0,100)}...<button class="btn danger" onclick="deleteLearned('${p.id}')" style="float:right">删除</button></div>`).join('');
-    }
-  }
-  async function deleteLearned(id) { await fetch(`/api/kb/learned/${id}`, { method:'DELETE' }); await refreshLearnOnly(); }
 
-  // ────── 管理员账号管理 ──────
-  async function refreshAdminList() {
-    const list = await fetchJSON('/api/admin/accounts');
+  // 管理员账号
+  async function loadAdmins(container) {
+    const data = await fetchJSON('/api/admin/accounts');
+    
+    container.innerHTML = `
+      <div class="top-bar">
+        <h2 class="page-title">管理员账号</h2>
+        <button class="btn btn-success" onclick="showAddAdminModal()"><i class="fas fa-plus"></i> 添加管理员</button>
+      </div>
+      <div class="content-area">
+        <div class="data-panel">
+          <div class="data-content" id="adminList"></div>
+        </div>
+      </div>
+    `;
+    
+    renderAdminList(data);
+  }
+
+  function renderAdminList(data) {
     const div = document.getElementById('adminList');
     if (!div) return;
     
     const allPanels = [
       { id: 'ai-chats', name: 'AI对话' },
-      { id: 'suggests', name: '建议列表' },
-      { id: 'demands', name: '需求列表' },
+      { id: 'suggests', name: '建议' },
+      { id: 'demands', name: '需求' },
       { id: 'human', name: '人工客服' },
-      { id: 'emails', name: '用户邮箱' },
+      { id: 'emails', name: '邮箱' },
       { id: 'knowledge', name: '知识库' },
-      { id: 'rules', name: '规则管理' },
-      { id: 'unanswered', name: '疑难记录' },
-      { id: 'learn', name: '学习URL' }
+      { id: 'rules', name: '规则' },
+      { id: 'unanswered', name: '疑难' }
     ];
     
-    div.innerHTML = list.map(admin => {
+    div.innerHTML = data.map(admin => {
       const isSuper = admin.role === 'superadmin' || admin.permissions?.includes('all');
-      const permTags = isSuper 
+      const permTags = isSuper
         ? '<span class="permission-tag all">全部权限</span>'
         : (admin.permissions || []).map(p => {
             const panel = allPanels.find(x => x.id === p);
             return panel ? `<span class="permission-tag">${panel.name}</span>` : '';
           }).join('');
       
-      return `<div class="admin-card">
-        <div class="admin-info">
-          <h4>${admin.username} ${isSuper ? '<small style="color:#fa8c16;">(超级管理员)</small>' : ''}</h4>
-          <small>创建时间: ${new Date(admin.createdAt).toLocaleString()}</small><br>
-          <div style="margin-top:5px;">${permTags}</div>
+      return `
+        <div class="admin-card">
+          <div class="admin-info">
+            <h4>${admin.username} ${isSuper ? '<small style="color: var(--accent-orange);">(超级管理员)</small>' : ''}</h4>
+            <small>创建于 ${formatTime(admin.createdAt)}</small>
+            <div style="margin-top: 8px;">${permTags}</div>
+          </div>
+          <div>
+            ${admin.id !== 'default' ? `
+              <button class="btn btn-primary" onclick="showEditAdminModal('${admin.id}')"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-danger" onclick="deleteAdmin('${admin.id}')"><i class="fas fa-trash"></i></button>
+            ` : ''}
+          </div>
         </div>
-        <div>
-          ${admin.id !== 'default' ? `<button class="btn" onclick="showEditAdminModal('${admin.id}')">编辑</button><button class="btn danger" onclick="deleteAdmin('${admin.id}')">删除</button>` : ''}
-        </div>
-      </div>`;
-    }).join('');
+      `;
+    }).join('') || '<div class="empty-state"><i class="fas fa-user-shield"></i><p>暂无管理员</p></div>';
   }
 
   function showAddAdminModal() {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.id = 'adminModal';
-    modal.innerHTML = `<div class="modal-content">
-      <h3>添加管理员</h3>
-      <div class="form-group">
-        <label>账号</label>
-        <input type="text" id="newAdminUsername" placeholder="请输入账号">
-      </div>
-      <div class="form-group">
-        <label>密码</label>
-        <input type="password" id="newAdminPassword" placeholder="请输入密码">
-      </div>
-      <div class="form-group">
-        <label>角色</label>
-        <select id="newAdminRole">
-          <option value="admin">普通管理员</option>
-          <option value="superadmin">超级管理员</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>权限（普通管理员时生效）</label>
-        <div class="checkbox-group" id="permissionCheckboxes">
-          <label><input type="checkbox" value="ai-chats"> AI对话</label>
-          <label><input type="checkbox" value="suggests"> 建议列表</label>
-          <label><input type="checkbox" value="demands"> 需求列表</label>
-          <label><input type="checkbox" value="human"> 人工客服</label>
-          <label><input type="checkbox" value="emails"> 用户邮箱</label>
-          <label><input type="checkbox" value="knowledge"> 知识库</label>
-          <label><input type="checkbox" value="rules"> 规则管理</label>
-          <label><input type="checkbox" value="unanswered"> 疑难记录</label>
-          <label><input type="checkbox" value="learn"> 学习URL</label>
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h3><i class="fas fa-user-plus"></i> 添加管理员</h3>
+        <div class="form-group">
+          <label>账号</label>
+          <input type="text" id="newAdminUsername" placeholder="请输入账号">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" id="newAdminPassword" placeholder="请输入密码">
+        </div>
+        <div class="form-group">
+          <label>角色</label>
+          <select id="newAdminRole">
+            <option value="admin">普通管理员</option>
+            <option value="superadmin">超级管理员</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>权限（普通管理员时生效）</label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" value="ai-chats"> AI对话</label>
+            <label><input type="checkbox" value="suggests"> 建议列表</label>
+            <label><input type="checkbox" value="demands"> 需求列表</label>
+            <label><input type="checkbox" value="human"> 人工客服</label>
+            <label><input type="checkbox" value="emails"> 用户邮箱</label>
+            <label><input type="checkbox" value="knowledge"> 知识库</label>
+            <label><input type="checkbox" value="rules"> 规则管理</label>
+            <label><input type="checkbox" value="unanswered"> 疑难记录</label>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" onclick="closeAdminModal()" style="background: var(--bg-secondary);">取消</button>
+          <button class="btn btn-success" onclick="createAdmin()">创建</button>
         </div>
       </div>
-      <div style="text-align:right;margin-top:15px;">
-        <button class="btn" onclick="closeAdminModal()">取消</button>
-        <button class="btn success" onclick="createAdmin()">创建</button>
-      </div>
-    </div>`;
+    `;
     document.body.appendChild(modal);
   }
 
@@ -437,42 +1721,43 @@
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.id = 'adminModal';
-    modal.innerHTML = `<div class="modal-content">
-      <h3>编辑管理员</h3>
-      <div class="form-group">
-        <label>账号</label>
-        <input type="text" id="editAdminUsername" value="${admin.username}">
-      </div>
-      <div class="form-group">
-        <label>新密码（留空则不修改）</label>
-        <input type="password" id="editAdminPassword" placeholder="留空则不修改">
-      </div>
-      <div class="form-group">
-        <label>角色</label>
-        <select id="editAdminRole">
-          <option value="admin" ${admin.role !== 'superadmin' ? 'selected' : ''}>普通管理员</option>
-          <option value="superadmin" ${admin.role === 'superadmin' ? 'selected' : ''}>超级管理员</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>权限（普通管理员时生效）</label>
-        <div class="checkbox-group" id="permissionCheckboxes">
-          <label><input type="checkbox" value="ai-chats" ${admin.permissions?.includes('ai-chats') || admin.permissions?.includes('all') ? 'checked' : ''}> AI对话</label>
-          <label><input type="checkbox" value="suggests" ${admin.permissions?.includes('suggests') || admin.permissions?.includes('all') ? 'checked' : ''}> 建议列表</label>
-          <label><input type="checkbox" value="demands" ${admin.permissions?.includes('demands') || admin.permissions?.includes('all') ? 'checked' : ''}> 需求列表</label>
-          <label><input type="checkbox" value="human" ${admin.permissions?.includes('human') || admin.permissions?.includes('all') ? 'checked' : ''}> 人工客服</label>
-          <label><input type="checkbox" value="emails" ${admin.permissions?.includes('emails') || admin.permissions?.includes('all') ? 'checked' : ''}> 用户邮箱</label>
-          <label><input type="checkbox" value="knowledge" ${admin.permissions?.includes('knowledge') || admin.permissions?.includes('all') ? 'checked' : ''}> 知识库</label>
-          <label><input type="checkbox" value="rules" ${admin.permissions?.includes('rules') || admin.permissions?.includes('all') ? 'checked' : ''}> 规则管理</label>
-          <label><input type="checkbox" value="unanswered" ${admin.permissions?.includes('unanswered') || admin.permissions?.includes('all') ? 'checked' : ''}> 疑难记录</label>
-          <label><input type="checkbox" value="learn" ${admin.permissions?.includes('learn') || admin.permissions?.includes('all') ? 'checked' : ''}> 学习URL</label>
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h3><i class="fas fa-user-edit"></i> 编辑管理员</h3>
+        <div class="form-group">
+          <label>账号</label>
+          <input type="text" id="editAdminUsername" value="${admin.username}">
+        </div>
+        <div class="form-group">
+          <label>新密码（留空则不修改）</label>
+          <input type="password" id="editAdminPassword" placeholder="留空则不修改">
+        </div>
+        <div class="form-group">
+          <label>角色</label>
+          <select id="editAdminRole">
+            <option value="admin" ${admin.role !== 'superadmin' ? 'selected' : ''}>普通管理员</option>
+            <option value="superadmin" ${admin.role === 'superadmin' ? 'selected' : ''}>超级管理员</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>权限（普通管理员时生效）</label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" value="ai-chats" ${admin.permissions?.includes('ai-chats') || admin.permissions?.includes('all') ? 'checked' : ''}> AI对话</label>
+            <label><input type="checkbox" value="suggests" ${admin.permissions?.includes('suggests') || admin.permissions?.includes('all') ? 'checked' : ''}> 建议列表</label>
+            <label><input type="checkbox" value="demands" ${admin.permissions?.includes('demands') || admin.permissions?.includes('all') ? 'checked' : ''}> 需求列表</label>
+            <label><input type="checkbox" value="human" ${admin.permissions?.includes('human') || admin.permissions?.includes('all') ? 'checked' : ''}> 人工客服</label>
+            <label><input type="checkbox" value="emails" ${admin.permissions?.includes('emails') || admin.permissions?.includes('all') ? 'checked' : ''}> 用户邮箱</label>
+            <label><input type="checkbox" value="knowledge" ${admin.permissions?.includes('knowledge') || admin.permissions?.includes('all') ? 'checked' : ''}> 知识库</label>
+            <label><input type="checkbox" value="rules" ${admin.permissions?.includes('rules') || admin.permissions?.includes('all') ? 'checked' : ''}> 规则管理</label>
+            <label><input type="checkbox" value="unanswered" ${admin.permissions?.includes('unanswered') || admin.permissions?.includes('all') ? 'checked' : ''}> 疑难记录</label>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" onclick="closeAdminModal()" style="background: var(--bg-secondary);">取消</button>
+          <button class="btn btn-success" onclick="updateAdmin('${id}')">保存</button>
         </div>
       </div>
-      <div style="text-align:right;margin-top:15px;">
-        <button class="btn" onclick="closeAdminModal()">取消</button>
-        <button class="btn success" onclick="updateAdmin('${id}')">保存</button>
-      </div>
-    </div>`;
+    `;
     document.body.appendChild(modal);
   }
 
@@ -485,7 +1770,7 @@
     const username = document.getElementById('newAdminUsername').value.trim();
     const password = document.getElementById('newAdminPassword').value;
     const role = document.getElementById('newAdminRole').value;
-    const checkboxes = document.querySelectorAll('#permissionCheckboxes input:checked');
+    const checkboxes = document.querySelectorAll('#adminModal .checkbox-group input:checked');
     const permissions = Array.from(checkboxes).map(cb => cb.value);
     
     if (!username || !password) return alert('账号和密码不能为空');
@@ -497,7 +1782,8 @@
         body: JSON.stringify({ username, password, role, permissions })
       });
       closeAdminModal();
-      await refreshAdminList();
+      const data = await fetchJSON('/api/admin/accounts');
+      renderAdminList(data);
       alert('创建成功');
     } catch(e) {
       alert('创建失败: ' + e.message);
@@ -508,7 +1794,7 @@
     const username = document.getElementById('editAdminUsername').value.trim();
     const password = document.getElementById('editAdminPassword').value;
     const role = document.getElementById('editAdminRole').value;
-    const checkboxes = document.querySelectorAll('#permissionCheckboxes input:checked');
+    const checkboxes = document.querySelectorAll('#adminModal .checkbox-group input:checked');
     const permissions = Array.from(checkboxes).map(cb => cb.value);
     
     if (!username) return alert('账号不能为空');
@@ -523,7 +1809,8 @@
         body: JSON.stringify(updateData)
       });
       closeAdminModal();
-      await refreshAdminList();
+      const data = await fetchJSON('/api/admin/accounts');
+      renderAdminList(data);
       alert('更新成功');
     } catch(e) {
       alert('更新失败: ' + e.message);
@@ -534,21 +1821,43 @@
     if (!confirm('确定要删除这个管理员账号吗？')) return;
     try {
       await fetch(`/api/admin/accounts/${id}`, { method: 'DELETE' });
-      await refreshAdminList();
+      const data = await fetchJSON('/api/admin/accounts');
+      renderAdminList(data);
       alert('删除成功');
     } catch(e) {
       alert('删除失败');
     }
   }
 
+  // 工具函数
+  function formatTime(time) {
+    if (!time) return '-';
+    const d = new Date(time);
+    const now = new Date();
+    const diff = now - d;
+    
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+    
+    return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  // 定时刷新
   function startRefresh() {
-    loadPanel('ai-chats');
     setInterval(() => {
-      if (!['human','knowledge','rules','unanswered','learn','admins'].includes(currentPanel)) {
+      if (!['human', 'knowledge', 'rules', 'unanswered', 'admins', 'dashboard'].includes(currentPanel)) {
         loadPanel(currentPanel);
       }
-    }, 3000);
+    }, 5000);
   }
+
+  // 回车登录
+  document.addEventListener('keypress', function(e) {
+    if (e.keyCode === 13 && document.getElementById('loginOverlay').style.display !== 'none') {
+      login();
+    }
+  });
 </script>
 </body>
 </html>

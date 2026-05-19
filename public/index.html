@@ -1,197 +1,557 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HOYOYO 智能客服</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "Microsoft YaHei", sans-serif; background: #f5f7fa; display: flex; justify-content: center; align-items: center; height: 100vh; }
-  .chat-container { width: 420px; max-width: 95vw; background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
-  .header { background: linear-gradient(135deg, #6B8EFF, #4A6CF7); color: white; padding: 16px 20px; font-size: 18px; font-weight: bold; }
-  .chat-box { flex: 1; padding: 16px; overflow-y: auto; min-height: 350px; max-height: 60vh; background: #f8fafc; }
-  .message { margin-bottom: 12px; display: flex; }
-  .message.user { justify-content: flex-end; }
-  .message.assistant { justify-content: flex-start; }
-  .bubble { max-width: 80%; padding: 10px 14px; border-radius: 18px; line-height: 1.5; word-break: break-word; }
-  .message.user .bubble { background: #4A6CF7; color: white; border-bottom-right-radius: 4px; }
-  .message.assistant .bubble { background: white; border: 1px solid #e2e8f0; color: #333; border-bottom-left-radius: 4px; }
-  .input-area { display: flex; padding: 12px; border-top: 1px solid #eee; background: white; }
-  .input-area input { flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 24px; outline: none; font-size: 14px; }
-  .input-area button { margin-left: 8px; background: #4A6CF7; color: white; border: none; border-radius: 24px; padding: 10px 18px; cursor: pointer; white-space: nowrap; }
-  .input-area button:disabled { background: #a0aec0; cursor: not-allowed; }
-  .email-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10; }
-  .modal-box { background: white; border-radius: 16px; padding: 30px; text-align: center; width: 320px; }
-  .modal-box input { width: 100%; padding: 10px; margin: 16px 0; border: 1px solid #ddd; border-radius: 8px; }
-  .modal-box button { width: 100%; padding: 10px; background: #4A6CF7; color: white; border: none; border-radius: 8px; cursor: pointer; }
-  .action-row { display: flex; justify-content: space-between; margin-top: 8px; padding: 0 12px 12px; }
-  .action-row button { background: transparent; border: 1px solid #4A6CF7; color: #4A6CF7; border-radius: 12px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
-  .bubble a { color: #1890ff; text-decoration: underline; word-break: break-all; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HOYOYO 智能客服</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --secondary: #8b5cf6;
+      --accent: #06b6d4;
+      --bg-dark: #0f0f23;
+      --bg-card: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.7);
+      --glass-bg: rgba(255, 255, 255, 0.15);
+      --glass-border: rgba(255, 255, 255, 0.2);
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4c1d95 60%, #581c87 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    /* 背景装饰 */
+    .bg-decoration {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    
+    .bg-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.5;
+    }
+    
+    .bg-blob-1 {
+      width: 400px;
+      height: 400px;
+      background: var(--primary);
+      top: -100px;
+      right: -100px;
+    }
+    
+    .bg-blob-2 {
+      width: 300px;
+      height: 300px;
+      background: var(--secondary);
+      bottom: -50px;
+      left: -50px;
+    }
+    
+    .bg-blob-3 {
+      width: 200px;
+      height: 200px;
+      background: var(--accent);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    /* 主容器 */
+    .welcome-container {
+      text-align: center;
+      color: var(--text-primary);
+      z-index: 10;
+      padding: 40px;
+    }
+    
+    .logo {
+      font-size: 48px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 0%, #c7d2fe 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .subtitle {
+      font-size: 18px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+    
+    .start-btn {
+      padding: 16px 48px;
+      font-size: 16px;
+      font-weight: 500;
+      color: white;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
+    }
+    
+    .start-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 50px rgba(99, 102, 241, 0.5);
+    }
+    
+    /* 聊天窗口 */
+    .chat-widget {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+    }
+    
+    .chat-bubble {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+      transition: all 0.3s ease;
+    }
+    
+    .chat-bubble:hover {
+      transform: scale(1.1);
+    }
+    
+    .chat-bubble svg {
+      width: 28px;
+      height: 28px;
+      fill: white;
+    }
+    
+    .chat-window {
+      position: absolute;
+      bottom: 80px;
+      right: 0;
+      width: 380px;
+      height: 520px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+    }
+    
+    .chat-window.open {
+      display: flex;
+      animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* 聊天头部 */
+    .chat-header {
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .chat-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .chat-avatar svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+    
+    .chat-title {
+      flex: 1;
+    }
+    
+    .chat-title h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+    }
+    
+    .chat-title span {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    
+    .close-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .close-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: white;
+    }
+    
+    /* 消息区域 */
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .message {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .message.ai {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      border-bottom-left-radius: 4px;
+    }
+    
+    .message .time {
+      font-size: 10px;
+      opacity: 0.6;
+      margin-top: 4px;
+      display: block;
+    }
+    
+    /* 快捷回复 */
+    .quick-replies {
+      padding: 8px 16px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      border-top: 1px solid var(--glass-border);
+    }
+    
+    .quick-reply {
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      color: white;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    
+    .quick-reply:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    /* 输入区域 */
+    .chat-input {
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .input-wrapper {
+      flex: 1;
+      position: relative;
+    }
+    
+    .chat-input input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      color: white;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    
+    .chat-input input::placeholder {
+      color: var(--text-secondary);
+    }
+    
+    .chat-input input:focus {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--primary);
+    }
+    
+    .send-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    
+    .send-btn:hover {
+      transform: scale(1.05);
+    }
+    
+    .send-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: white;
+    }
+    
+    /* 打字指示器 */
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      align-self: flex-start;
+    }
+    
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      animation: typing 1.4s infinite;
+    }
+    
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+    
+    /* 滚动条样式 */
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+    
+    /* 响应式 */
+    @media (max-width: 480px) {
+      .chat-window {
+        width: calc(100vw - 32px);
+        height: calc(100vh - 120px);
+        bottom: 70px;
+        right: -8px;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="chat-container">
-  <div class="header" id="headerText">🤖 HOYOYO 客服小助手</div>
-  <div class="chat-box" id="chatBox"></div>
-  <div class="action-row">
-    <button onclick="switchToHuman()">👤 转人工客服</button>
-    <button onclick="openSuggest()">💡 提建议</button>
-    <button onclick="openDemand()">📋 提需求</button>
+  <!-- 背景装饰 -->
+  <div class="bg-decoration">
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+    <div class="bg-blob bg-blob-3"></div>
   </div>
-  <div class="input-area">
-    <input type="text" id="messageInput" placeholder="输入问题，或发煤炉链接/搜商品名..." onkeypress="if(event.keyCode==13) sendMessage()" />
-    <button id="sendBtn" onclick="sendMessage()">发送</button>
+  
+  <!-- 欢迎页面 -->
+  <div class="welcome-container" id="welcomePage">
+    <div class="logo">HOYOYO</div>
+    <p class="subtitle">智能客服 · 随时为您服务</p>
+    <button class="start-btn" onclick="openChat()">开始对话</button>
   </div>
-</div>
-
-<!-- 邮箱绑定弹窗 -->
-<div class="email-modal" id="emailModal">
-  <div class="modal-box">
-    <h3>✉️ 绑定 HOYOYO 邮箱</h3>
-    <p style="color:#666;font-size:14px;">用于记录你的专属对话</p>
-    <input type="email" id="emailInput" placeholder="name@hoyoyo.com" />
-    <button onclick="saveEmail()">开始对话</button>
+  
+  <!-- 聊天组件 -->
+  <div class="chat-widget">
+    <div class="chat-bubble" onclick="toggleChat()">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+    </div>
+    
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-header">
+        <div class="chat-avatar">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.53c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.07 5 7.41 0 2.08-.8 3.98-2.1 5.4z"/></svg>
+        </div>
+        <div class="chat-title">
+          <h3>HOYOYO 智能助手</h3>
+          <span>在线 · 通常几秒内回复</span>
+        </div>
+        <button class="close-btn" onclick="toggleChat()">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      
+      <div class="chat-messages" id="chatMessages">
+        <div class="message ai">
+          您好！我是 HOYOYO 智能助手，很高兴为您服务。请问有什么可以帮助您的？
+          <span class="time">刚刚</span>
+        </div>
+      </div>
+      
+      <div class="quick-replies">
+        <button class="quick-reply" onclick="sendQuickReply('产品咨询')">产品咨询</button>
+        <button class="quick-reply" onclick="sendQuickReply('订单查询')">订单查询</button>
+        <button class="quick-reply" onclick="sendQuickReply('售后服务')">售后服务</button>
+        <button class="quick-reply" onclick="sendQuickReply('联系人工')">联系人工</button>
+      </div>
+      
+      <div class="chat-input">
+        <div class="input-wrapper">
+          <input type="text" id="messageInput" placeholder="输入您的问题..." onkeypress="handleKeyPress(event)">
+        </div>
+        <button class="send-btn" onclick="sendMessage()">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+      </div>
+    </div>
   </div>
-</div>
-
-<script>
-  // ======== 多语言 ========
-  const i18n = {
-    'zh-CN': { header:'🤖 HOYOYO 客服小助手', emailTitle:'✉️ 绑定 HOYOYO 邮箱', emailDesc:'用于记录你的专属对话', emailPlaceholder:'name@hoyoyo.com', startChat:'开始对话', switchHuman:'👤 转人工客服', suggest:'💡 提建议', demand:'📋 提需求', inputPlaceholder:'输入问题，或发煤炉链接/搜商品名...', send:'发送', pleaseEmail:'请先绑定邮箱', validEmail:'请输入有效邮箱', suggestPrompt:'请输入你的建议：', demandPrompt:'请描述你的服务需求：', suggestThanks:'感谢你的建议！', demandThanks:'需求已记录,我们会尽快处理！', networkError:'网络开小差了，请稍后再试～', waitMessage:'稍等一下，小助手正在赶来的路上～' },
-    'zh-TW': { header:'🤖 HOYOYO 客服小幫手', emailTitle:'✉️ 綁定 HOYOYO 信箱', emailDesc:'用於記錄您的專屬對話', emailPlaceholder:'name@hoyoyo.com', startChat:'開始對話', switchHuman:'👤 轉人工客服', suggest:'💡 提供建議', demand:'📋 提出需求', inputPlaceholder:'輸入問題，或發煤爐連結/搜尋商品名...', send:'發送', pleaseEmail:'請先綁定信箱', validEmail:'請輸入有效信箱', suggestPrompt:'請輸入您的建議：', demandPrompt:'請描述您的服務需求：', suggestThanks:'感謝您的建議！', demandThanks:'需求已記錄，我們會儘快處理！', networkError:'網路連線異常，請稍後再試～', waitMessage:'請稍候，小幫手正在趕來的路上～' },
-    'en': { header:'🤖 HOYOYO Assistant', emailTitle:'✉️ Bind HOYOYO Email', emailDesc:'To save your personal conversation', emailPlaceholder:'name@hoyoyo.com', startChat:'Start Chat', switchHuman:'👤 Transfer to Human', suggest:'💡 Suggestion', demand:'📋 Request', inputPlaceholder:'Type question, or Mercari link/product name...', send:'Send', pleaseEmail:'Please bind your email first', validEmail:'Please enter a valid email', suggestPrompt:'Please enter your suggestion:', demandPrompt:'Please describe your service request:', suggestThanks:'Thanks for your suggestion!', demandThanks:'Request recorded, we will handle it soon!', networkError:'Network error, please try again later~', waitMessage:'Just a moment, our assistant is on the way~' },
-    'ja': { header:'🤖 HOYOYO アシスタント', emailTitle:'✉️ HOYOYO メールアドレスを登録', emailDesc:'あなた専用の会話を保存します', emailPlaceholder:'name@hoyoyo.com', startChat:'チャット開始', switchHuman:'👤 有人対応に切り替え', suggest:'💡 提案する', demand:'📋 要望を送る', inputPlaceholder:'質問、またはメルカリのリンク/商品名を入力...', send:'送信', pleaseEmail:'先にメールアドレスを登録してください', validEmail:'有効なメールアドレスを入力してください', suggestPrompt:'提案を入力してください：', demandPrompt:'サービス要望を説明してください：', suggestThanks:'ご提案ありがとうございます！', demandThanks:'要望を受け付けました。早急に対応いたします！', networkError:'ネットワークエラーです。後でもう一度お試しください～', waitMessage:'少々お待ちください、アシスタントが向かっています～' }
-  };
-  function getLang() {
-    const lang = navigator.language || navigator.userLanguage;
-    if (lang.startsWith('zh-TW') || lang.startsWith('zh-HK')) return 'zh-TW';
-    if (lang.startsWith('zh')) return 'zh-CN';
-    if (lang.startsWith('ja')) return 'ja';
-    if (lang.startsWith('en')) return 'en';
-    return 'zh-CN';
-  }
-  const t = i18n[getLang()];
-  document.getElementById('headerText').innerText = t.header;
-  document.getElementById('messageInput').placeholder = t.inputPlaceholder;
-  document.getElementById('sendBtn').innerText = t.send;
-  document.querySelectorAll('.action-row button')[0].innerText = t.switchHuman;
-  document.querySelectorAll('.action-row button')[1].innerText = t.suggest;
-  document.querySelectorAll('.action-row button')[2].innerText = t.demand;
-  const modal = document.getElementById('emailModal');
-  modal.querySelector('h3').innerText = t.emailTitle;
-  modal.querySelector('p').innerText = t.emailDesc;
-  modal.querySelector('input').placeholder = t.emailPlaceholder;
-  modal.querySelector('button').innerText = t.startChat;
-
-  let userEmail = localStorage.getItem('hoyoyo_email');
-  const chatBox = document.getElementById('chatBox');
-  const msgInput = document.getElementById('messageInput');
-  const sendBtn = document.getElementById('sendBtn');
-
-  // ======== 工具函数：将文本中的 URL 转为可点击链接 ========
-  function linkify(text) {
-    return text.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
-  }
-
-  function loadLocalHistory() {
-    if (!userEmail) return;
-    const history = JSON.parse(localStorage.getItem(`chat_${userEmail}`) || '[]');
-    chatBox.innerHTML = '';
-    history.forEach(h => addBubble(h.role, h.content));
-  }
-
-  function addBubble(role, text) {
-    const div = document.createElement('div');
-    div.className = `message ${role}`;
-    // 先转义 HTML 特殊字符（防止 XSS），然后转换链接
-    const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const linked = linkify(escaped);
-    div.innerHTML = `<div class="bubble">${linked}</div>`;
-    chatBox.appendChild(div);
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    if (userEmail) {
-      let history = JSON.parse(localStorage.getItem(`chat_${userEmail}`) || '[]');
-      history.push({ role, content: text });
-      if (history.length > 30) history = history.slice(-30);
-      localStorage.setItem(`chat_${userEmail}`, JSON.stringify(history));
+  
+  <script>
+    let isOpen = false;
+    let sessionId = Date.now().toString();
+    
+    function toggleChat() {
+      isOpen = !isOpen;
+      document.getElementById('chatWindow').classList.toggle('open', isOpen);
     }
-  }
-
-  async function sendMessage() {
-    const msg = msgInput.value.trim();
-    if (!msg) return;
-    if (!userEmail) { alert(t.pleaseEmail); return; }
-    addBubble('user', msg);
-    msgInput.value = '';
-    sendBtn.disabled = true;
-    msgInput.disabled = true;
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userEmail, message: msg })
-      });
-      const data = await res.json();
-      if (data.reply) {
-        addBubble('assistant', data.reply);
-      } else {
-        addBubble('assistant', t.waitMessage);
+    
+    function openChat() {
+      if (!isOpen) toggleChat();
+    }
+    
+    function sendQuickReply(text) {
+      addMessage(text, 'user');
+      document.getElementById('messageInput').value = '';
+      callAI(text);
+    }
+    
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text) return;
+      
+      addMessage(text, 'user');
+      input.value = '';
+      callAI(text);
+    }
+    
+    function handleKeyPress(e) {
+      if (e.key === 'Enter') sendMessage();
+    }
+    
+    function addMessage(text, type) {
+      const container = document.getElementById('chatMessages');
+      const msg = document.createElement('div');
+      msg.className = `message ${type}`;
+      const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      msg.innerHTML = `${text}<span class="time">${time}</span>`;
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+    }
+    
+    function showTyping() {
+      const container = document.getElementById('chatMessages');
+      const typing = document.createElement('div');
+      typing.className = 'typing-indicator';
+      typing.id = 'typingIndicator';
+      typing.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+      container.appendChild(typing);
+      container.scrollTop = container.scrollHeight;
+    }
+    
+    function hideTyping() {
+      const typing = document.getElementById('typingIndicator');
+      if (typing) typing.remove();
+    }
+    
+    async function callAI(text) {
+      showTyping();
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, sessionId })
+        });
+        const data = await res.json();
+        hideTyping();
+        addMessage(data.reply || '抱歉，我暂时无法回答这个问题。', 'ai');
+      } catch (e) {
+        hideTyping();
+        addMessage('网络连接失败，请稍后重试。', 'ai');
       }
-    } catch (err) {
-      addBubble('assistant', t.networkError);
-    } finally {
-      sendBtn.disabled = false;
-      msgInput.disabled = false;
-      msgInput.focus();
     }
-  }
-
-  function saveEmail() {
-    const email = document.getElementById('emailInput').value.trim();
-    if (!email || !email.includes('@')) { alert(t.validEmail); return; }
-    userEmail = email;
-    localStorage.setItem('hoyoyo_email', email);
-    fetch('/api/save-user-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    }).catch(() => {});
-    document.getElementById('emailModal').style.display = 'none';
-    loadLocalHistory();
-  }
-
-  function switchToHuman() {
-    if (!userEmail) { alert(t.pleaseEmail); return; }
-    const userId = btoa(userEmail);
-    window.location.href = `/human.html?email=${encodeURIComponent(userEmail)}&uid=${userId}`;
-  }
-
-  function openSuggest() {
-    if (!userEmail) { alert(t.pleaseEmail); return; }
-    const content = prompt(t.suggestPrompt);
-    if (content) {
-      fetch('/api/suggest', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email: userEmail, content }) })
-        .then(() => alert(t.suggestThanks)).catch(() => alert(t.networkError));
-    }
-  }
-
-  function openDemand() {
-    if (!userEmail) { alert(t.pleaseEmail); return; }
-    const content = prompt(t.demandPrompt);
-    if (content) {
-      fetch('/api/demand', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email: userEmail, content }) })
-        .then(() => alert(t.demandThanks)).catch(() => alert(t.networkError));
-    }
-  }
-
-  // 初始化
-  if (!userEmail) {
-    document.getElementById('emailModal').style.display = 'flex';
-  } else {
-    loadLocalHistory();
-    fetch('/api/save-user-email', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email: userEmail }) }).catch(() => {});
-  }
-</script>
+  </script>
 </body>
 </html>
