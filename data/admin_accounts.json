@@ -1,0 +1,12 @@
+[
+  {
+    "id": "default",
+    "username": "admin",
+    "password": "hoyoyo111",
+    "role": "superadmin",
+    "permissions": [
+      "all"
+    ],
+    "createdAt": "2026-05-19T10:32:39.776Z"
+  }
+]
