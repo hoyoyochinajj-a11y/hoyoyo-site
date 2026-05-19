@@ -20,6 +20,7 @@ const FAQ_FILE = path.join(DATA_DIR, 'faq_knowledge.json');
 const SITE_PAGES_FILE = path.join(DATA_DIR, 'site_pages.json');
 const UNANSWERED_FILE = path.join(DATA_DIR, 'unanswered.json');
 const LEARNED_FILE = path.join(DATA_DIR, 'learned_pages.json');
+const ADMIN_ACCOUNTS_FILE = path.join(DATA_DIR, 'admin_accounts.json');
 
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
 
@@ -32,6 +33,22 @@ function writeJSON(filePath, data) { fs.writeFileSync(filePath, JSON.stringify(d
 let aiRules = readJSON(RULES_FILE);
 let sitePages = readJSON(SITE_PAGES_FILE);
 let learnedPages = readJSON(LEARNED_FILE);
+let adminAccounts = readJSON(ADMIN_ACCOUNTS_FILE);
+
+// 初始化默认管理员账号（如果不存在）
+const defaultAdminUsername = process.env.ADMIN_USERNAME || 'admin';
+const defaultAdminPassword = process.env.ADMIN_PASSWORD || 'hoyoyo111';
+if (!adminAccounts.some(a => a.username === defaultAdminUsername)) {
+  adminAccounts.push({
+    id: 'default',
+    username: defaultAdminUsername,
+    password: defaultAdminPassword,
+    role: 'superadmin',
+    permissions: ['all'],
+    createdAt: new Date().toISOString()
+  });
+  writeJSON(ADMIN_ACCOUNTS_FILE, adminAccounts);
+}
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
@@ -433,8 +450,87 @@ app.post('/api/demand', (req, res) => {
   res.json({ success: true });
 });
 app.post('/api/login', (req, res) => {
-  if (req.body.password === process.env.ADMIN_PASSWORD) res.json({ success: true });
-  else res.status(401).json({ error: '密码错误' });
+  const { username, password } = req.body;
+  
+  // 支持旧版只传password的方式（向后兼容）
+  if (!username && password) {
+    if (password === process.env.ADMIN_PASSWORD) {
+      const defaultAdmin = adminAccounts.find(a => a.role === 'superadmin');
+      return res.json({ success: true, admin: { username: defaultAdmin?.username || 'admin', role: 'superadmin', permissions: ['all'] } });
+    }
+    return res.status(401).json({ error: '密码错误' });
+  }
+  
+  // 新版账号+密码登录
+  const admin = adminAccounts.find(a => a.username === username && a.password === password);
+  if (admin) {
+    res.json({ success: true, admin: { username: admin.username, role: admin.role, permissions: admin.permissions } });
+  } else {
+    res.status(401).json({ error: '账号或密码错误' });
+  }
+});
+
+// ────── 管理员账号管理 ──────
+app.get('/api/admin/accounts', (req, res) => {
+  // 返回账号列表（不返回密码）
+  const list = adminAccounts.map(a => ({
+    id: a.id,
+    username: a.username,
+    role: a.role,
+    permissions: a.permissions,
+    createdAt: a.createdAt
+  }));
+  res.json(list);
+});
+
+app.post('/api/admin/accounts', (req, res) => {
+  const { username, password, role, permissions } = req.body;
+  if (!username || !password) return res.status(400).json({ error: '账号和密码不能为空' });
+  if (adminAccounts.some(a => a.username === username)) return res.status(400).json({ error: '账号已存在' });
+  
+  const newAdmin = {
+    id: Date.now().toString(36),
+    username,
+    password,
+    role: role || 'admin',
+    permissions: permissions || ['ai-chats', 'suggests', 'demands', 'human', 'emails', 'knowledge', 'rules', 'unanswered', 'learn'],
+    createdAt: new Date().toISOString()
+  };
+  adminAccounts.push(newAdmin);
+  writeJSON(ADMIN_ACCOUNTS_FILE, adminAccounts);
+  res.json({ success: true, admin: { ...newAdmin, password: undefined } });
+});
+
+app.put('/api/admin/accounts/:id', (req, res) => {
+  const { id } = req.params;
+  const { username, password, role, permissions } = req.body;
+  
+  const index = adminAccounts.findIndex(a => a.id === id);
+  if (index === -1) return res.status(404).json({ error: '账号不存在' });
+  if (adminAccounts[index].role === 'superadmin' && id === 'default') {
+    return res.status(403).json({ error: '不能修改默认超级管理员' });
+  }
+  
+  if (username) adminAccounts[index].username = username;
+  if (password) adminAccounts[index].password = password;
+  if (role) adminAccounts[index].role = role;
+  if (permissions) adminAccounts[index].permissions = permissions;
+  
+  writeJSON(ADMIN_ACCOUNTS_FILE, adminAccounts);
+  res.json({ success: true, admin: { ...adminAccounts[index], password: undefined } });
+});
+
+app.delete('/api/admin/accounts/:id', (req, res) => {
+  const { id } = req.params;
+  const admin = adminAccounts.find(a => a.id === id);
+  if (!admin) return res.status(404).json({ error: '账号不存在' });
+  if (admin.role === 'superadmin' && id === 'default') {
+    return res.status(403).json({ error: '不能删除默认超级管理员' });
+  }
+  
+  adminAccounts = adminAccounts.filter(a => a.id !== id);
+  writeJSON(ADMIN_ACCOUNTS_FILE, adminAccounts);
+  res.json({ success: true });
 });
 app.get('/api/ai-chats', (req, res) => res.json(readJSON(CHAT_FILE).reverse()));
 app.get('/api/suggests', (req, res) => res.json(readJSON(SUGGEST_FILE).reverse()));

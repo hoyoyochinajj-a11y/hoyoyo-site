@@ -9,8 +9,8 @@
   body { font-family: "Microsoft YaHei", sans-serif; background: #f0f2f5; }
   .login-overlay { position: fixed; top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5); display:flex;align-items:center;justify-content:center;z-index:100; }
   .login-box { background: white; padding: 30px; border-radius: 12px; text-align: center; }
-  .login-box input { padding: 10px; width: 250px; margin: 12px 0; border:1px solid #ddd; border-radius:6px; }
-  .login-box button { padding: 10px 24px; background: #4A6CF7; color: white; border: none; border-radius: 6px; cursor: pointer; }
+  .login-box input { padding: 10px; width: 250px; margin: 8px 0; border:1px solid #ddd; border-radius:6px; }
+  .login-box button { padding: 10px 24px; background: #4A6CF7; color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
   .container { display: flex; height: 100vh; }
   .sidebar { width: 200px; background: #001529; color: white; padding: 20px 0; }
   .sidebar h2 { padding: 0 16px 20px; border-bottom: 1px solid #ffffff30; }
@@ -28,16 +28,32 @@
   .note-area button { background:#52c41a; color:white; }
   .reply-area button { background:#FF7A45; color:white; }
   .form-group { margin-bottom:10px; }
-  .form-group input, .form-group textarea { width:100%; padding:6px; margin:3px 0; border:1px solid #ddd; border-radius:4px; }
+  .form-group input, .form-group textarea, .form-group select { width:100%; padding:6px; margin:3px 0; border:1px solid #ddd; border-radius:4px; }
   .btn { background:#4A6CF7; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-right:5px; }
   .btn.danger { background:#ff4d4f; }
+  .btn.success { background:#52c41a; }
+  
+  /* 管理员账号管理样式 */
+  .admin-card { background: white; padding: 15px; border-radius: 8px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+  .admin-info { flex: 1; }
+  .admin-info h4 { margin-bottom: 5px; }
+  .admin-info small { color: #666; }
+  .permission-tag { display: inline-block; padding: 2px 8px; background: #e6f7ff; border-radius: 4px; margin: 2px; font-size: 12px; }
+  .permission-tag.all { background: #fff7e6; color: #fa8c16; }
+  .modal { position: fixed; top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5); display:flex;align-items:center;justify-content:center;z-index:300; }
+  .modal-content { background: white; padding: 20px; border-radius: 12px; width: 400px; }
+  .modal-content h3 { margin-bottom: 15px; }
+  .checkbox-group { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; }
+  .checkbox-group label { display: flex; align-items: center; gap: 4px; padding: 4px 8px; background: #f5f5f5; border-radius: 4px; cursor: pointer; }
+  .checkbox-group label input { margin-right: 4px; }
 </style>
 </head>
 <body>
 <div class="login-overlay" id="loginOverlay">
   <div class="login-box">
     <h3>🔐 管理员登录</h3>
-    <input type="password" id="passwordInput" placeholder="请输入后台密码" />
+    <input type="text" id="usernameInput" placeholder="请输入账号" />
+    <input type="password" id="passwordInput" placeholder="请输入密码" />
     <button onclick="login()">进入后台</button>
   </div>
 </div>
@@ -55,6 +71,7 @@
     <div onclick="switchPanel('rules')">📋 规则管理</div>
     <div onclick="switchPanel('unanswered')">🤔 疑难记录</div>
     <div onclick="switchPanel('learn')">🌐 学习URL</div>
+    <div onclick="switchPanel('admins')">👤 管理员账号</div>
   </div>
   <div class="main" id="mainContent"></div>
 </div>
@@ -64,14 +81,57 @@
   let selectedUserId = null;
   let humanRefresh = null;
   let panelRefresh = null;
+  let currentAdmin = null; // 当前登录的管理员信息
 
   async function login() {
+    const username = document.getElementById('usernameInput').value.trim();
     const pwd = document.getElementById('passwordInput').value;
-    const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ password: pwd }) });
+    
+    if (!username) {
+      alert('请输入账号');
+      return;
+    }
+    
+    const res = await fetch('/api/login', { 
+      method:'POST', 
+      headers:{'Content-Type':'application/json'}, 
+      body:JSON.stringify({ username, password: pwd }) 
+    });
+    
     if (res.ok) {
+      const data = await res.json();
+      currentAdmin = data.admin;
       document.getElementById('loginOverlay').style.display = 'none';
+      
+      // 根据权限显示/隐藏菜单
+      applyPermissions();
       startRefresh();
-    } else alert('密码错误');
+    } else {
+      const err = await res.json();
+      alert(err.error || '登录失败');
+    }
+  }
+
+  function applyPermissions() {
+    if (!currentAdmin) return;
+    const permissions = currentAdmin.permissions || [];
+    const isSuperAdmin = currentAdmin.role === 'superadmin' || permissions.includes('all');
+    
+    const menuItems = document.querySelectorAll('.sidebar div');
+    const panels = ['ai-chats', 'suggests', 'demands', 'human', 'emails', 'knowledge', 'rules', 'unanswered', 'learn', 'admins'];
+    
+    menuItems.forEach((item, idx) => {
+      const panelName = panels[idx];
+      if (panelName === 'admins') {
+        // 只有超级管理员才能看到管理员账号管理
+        item.style.display = isSuperAdmin ? 'block' : 'none';
+      } else if (!isSuperAdmin) {
+        // 非超级管理员根据权限显示
+        item.style.display = permissions.includes(panelName) ? 'block' : 'none';
+      } else {
+        item.style.display = 'block';
+      }
+    });
   }
 
   function switchPanel(name) {
@@ -79,7 +139,7 @@
     if (humanRefresh) { clearInterval(humanRefresh); humanRefresh = null; }
     if (panelRefresh) { clearInterval(panelRefresh); panelRefresh = null; }
     document.querySelectorAll('.sidebar div').forEach(d => d.classList.remove('active'));
-    const idx = ['ai-chats','suggests','demands','human','emails','knowledge','rules','unanswered','learn'].indexOf(name);
+    const idx = ['ai-chats','suggests','demands','human','emails','knowledge','rules','unanswered','learn','admins'].indexOf(name);
     if (idx >= 0) document.querySelectorAll('.sidebar div')[idx].classList.add('active');
     loadPanel(name);
   }
@@ -165,6 +225,13 @@
         if (panelRefresh) clearInterval(panelRefresh);
         panelRefresh = setInterval(() => { if (currentPanel === 'learn') refreshLearnOnly(); }, 5000);
         await refreshLearnOnly();
+      }
+      else if (name === 'admins') {
+        main.innerHTML = `<h3>👤 管理员账号管理</h3>
+          <p style="margin:10px 0;color:#666;">创建子账号并分配权限，不同管理员只能访问被授权的功能模块。</p>
+          <button class="btn success" onclick="showAddAdminModal()" style="margin-bottom:15px;">+ 添加管理员</button>
+          <div id="adminList"></div>`;
+        await refreshAdminList();
       }
     } catch(e) { main.innerHTML = '<p style="color:red">加载失败</p>'; }
   }
@@ -279,10 +346,205 @@
   }
   async function deleteLearned(id) { await fetch(`/api/kb/learned/${id}`, { method:'DELETE' }); await refreshLearnOnly(); }
 
+  // ────── 管理员账号管理 ──────
+  async function refreshAdminList() {
+    const list = await fetchJSON('/api/admin/accounts');
+    const div = document.getElementById('adminList');
+    if (!div) return;
+    
+    const allPanels = [
+      { id: 'ai-chats', name: 'AI对话' },
+      { id: 'suggests', name: '建议列表' },
+      { id: 'demands', name: '需求列表' },
+      { id: 'human', name: '人工客服' },
+      { id: 'emails', name: '用户邮箱' },
+      { id: 'knowledge', name: '知识库' },
+      { id: 'rules', name: '规则管理' },
+      { id: 'unanswered', name: '疑难记录' },
+      { id: 'learn', name: '学习URL' }
+    ];
+    
+    div.innerHTML = list.map(admin => {
+      const isSuper = admin.role === 'superadmin' || admin.permissions?.includes('all');
+      const permTags = isSuper 
+        ? '<span class="permission-tag all">全部权限</span>'
+        : (admin.permissions || []).map(p => {
+            const panel = allPanels.find(x => x.id === p);
+            return panel ? `<span class="permission-tag">${panel.name}</span>` : '';
+          }).join('');
+      
+      return `<div class="admin-card">
+        <div class="admin-info">
+          <h4>${admin.username} ${isSuper ? '<small style="color:#fa8c16;">(超级管理员)</small>' : ''}</h4>
+          <small>创建时间: ${new Date(admin.createdAt).toLocaleString()}</small><br>
+          <div style="margin-top:5px;">${permTags}</div>
+        </div>
+        <div>
+          ${admin.id !== 'default' ? `<button class="btn" onclick="showEditAdminModal('${admin.id}')">编辑</button><button class="btn danger" onclick="deleteAdmin('${admin.id}')">删除</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function showAddAdminModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'adminModal';
+    modal.innerHTML = `<div class="modal-content">
+      <h3>添加管理员</h3>
+      <div class="form-group">
+        <label>账号</label>
+        <input type="text" id="newAdminUsername" placeholder="请输入账号">
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" id="newAdminPassword" placeholder="请输入密码">
+      </div>
+      <div class="form-group">
+        <label>角色</label>
+        <select id="newAdminRole">
+          <option value="admin">普通管理员</option>
+          <option value="superadmin">超级管理员</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>权限（普通管理员时生效）</label>
+        <div class="checkbox-group" id="permissionCheckboxes">
+          <label><input type="checkbox" value="ai-chats"> AI对话</label>
+          <label><input type="checkbox" value="suggests"> 建议列表</label>
+          <label><input type="checkbox" value="demands"> 需求列表</label>
+          <label><input type="checkbox" value="human"> 人工客服</label>
+          <label><input type="checkbox" value="emails"> 用户邮箱</label>
+          <label><input type="checkbox" value="knowledge"> 知识库</label>
+          <label><input type="checkbox" value="rules"> 规则管理</label>
+          <label><input type="checkbox" value="unanswered"> 疑难记录</label>
+          <label><input type="checkbox" value="learn"> 学习URL</label>
+        </div>
+      </div>
+      <div style="text-align:right;margin-top:15px;">
+        <button class="btn" onclick="closeAdminModal()">取消</button>
+        <button class="btn success" onclick="createAdmin()">创建</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+  }
+
+  async function showEditAdminModal(id) {
+    const list = await fetchJSON('/api/admin/accounts');
+    const admin = list.find(a => a.id === id);
+    if (!admin) return alert('账号不存在');
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'adminModal';
+    modal.innerHTML = `<div class="modal-content">
+      <h3>编辑管理员</h3>
+      <div class="form-group">
+        <label>账号</label>
+        <input type="text" id="editAdminUsername" value="${admin.username}">
+      </div>
+      <div class="form-group">
+        <label>新密码（留空则不修改）</label>
+        <input type="password" id="editAdminPassword" placeholder="留空则不修改">
+      </div>
+      <div class="form-group">
+        <label>角色</label>
+        <select id="editAdminRole">
+          <option value="admin" ${admin.role !== 'superadmin' ? 'selected' : ''}>普通管理员</option>
+          <option value="superadmin" ${admin.role === 'superadmin' ? 'selected' : ''}>超级管理员</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>权限（普通管理员时生效）</label>
+        <div class="checkbox-group" id="permissionCheckboxes">
+          <label><input type="checkbox" value="ai-chats" ${admin.permissions?.includes('ai-chats') || admin.permissions?.includes('all') ? 'checked' : ''}> AI对话</label>
+          <label><input type="checkbox" value="suggests" ${admin.permissions?.includes('suggests') || admin.permissions?.includes('all') ? 'checked' : ''}> 建议列表</label>
+          <label><input type="checkbox" value="demands" ${admin.permissions?.includes('demands') || admin.permissions?.includes('all') ? 'checked' : ''}> 需求列表</label>
+          <label><input type="checkbox" value="human" ${admin.permissions?.includes('human') || admin.permissions?.includes('all') ? 'checked' : ''}> 人工客服</label>
+          <label><input type="checkbox" value="emails" ${admin.permissions?.includes('emails') || admin.permissions?.includes('all') ? 'checked' : ''}> 用户邮箱</label>
+          <label><input type="checkbox" value="knowledge" ${admin.permissions?.includes('knowledge') || admin.permissions?.includes('all') ? 'checked' : ''}> 知识库</label>
+          <label><input type="checkbox" value="rules" ${admin.permissions?.includes('rules') || admin.permissions?.includes('all') ? 'checked' : ''}> 规则管理</label>
+          <label><input type="checkbox" value="unanswered" ${admin.permissions?.includes('unanswered') || admin.permissions?.includes('all') ? 'checked' : ''}> 疑难记录</label>
+          <label><input type="checkbox" value="learn" ${admin.permissions?.includes('learn') || admin.permissions?.includes('all') ? 'checked' : ''}> 学习URL</label>
+        </div>
+      </div>
+      <div style="text-align:right;margin-top:15px;">
+        <button class="btn" onclick="closeAdminModal()">取消</button>
+        <button class="btn success" onclick="updateAdmin('${id}')">保存</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+  }
+
+  function closeAdminModal() {
+    const modal = document.getElementById('adminModal');
+    if (modal) modal.remove();
+  }
+
+  async function createAdmin() {
+    const username = document.getElementById('newAdminUsername').value.trim();
+    const password = document.getElementById('newAdminPassword').value;
+    const role = document.getElementById('newAdminRole').value;
+    const checkboxes = document.querySelectorAll('#permissionCheckboxes input:checked');
+    const permissions = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (!username || !password) return alert('账号和密码不能为空');
+    
+    try {
+      await fetchJSON('/api/admin/accounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, role, permissions })
+      });
+      closeAdminModal();
+      await refreshAdminList();
+      alert('创建成功');
+    } catch(e) {
+      alert('创建失败: ' + e.message);
+    }
+  }
+
+  async function updateAdmin(id) {
+    const username = document.getElementById('editAdminUsername').value.trim();
+    const password = document.getElementById('editAdminPassword').value;
+    const role = document.getElementById('editAdminRole').value;
+    const checkboxes = document.querySelectorAll('#permissionCheckboxes input:checked');
+    const permissions = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (!username) return alert('账号不能为空');
+    
+    const updateData = { username, role, permissions };
+    if (password) updateData.password = password;
+    
+    try {
+      await fetchJSON(`/api/admin/accounts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+      });
+      closeAdminModal();
+      await refreshAdminList();
+      alert('更新成功');
+    } catch(e) {
+      alert('更新失败: ' + e.message);
+    }
+  }
+
+  async function deleteAdmin(id) {
+    if (!confirm('确定要删除这个管理员账号吗？')) return;
+    try {
+      await fetch(`/api/admin/accounts/${id}`, { method: 'DELETE' });
+      await refreshAdminList();
+      alert('删除成功');
+    } catch(e) {
+      alert('删除失败');
+    }
+  }
+
   function startRefresh() {
     loadPanel('ai-chats');
     setInterval(() => {
-      if (!['human','knowledge','rules','unanswered','learn'].includes(currentPanel)) {
+      if (!['human','knowledge','rules','unanswered','learn','admins'].includes(currentPanel)) {
         loadPanel(currentPanel);
       }
     }, 3000);
