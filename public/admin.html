@@ -644,9 +644,31 @@
       }
       else if (name === 'rules') {
         if (!document.getElementById('ruleList')) {
-          main.innerHTML = `<h3>规则管理</h3>
-            <div class="form-group"><textarea id="ruleContent" placeholder="规则内容" rows="3"></textarea><button class="btn" onclick="addRule()">添加规则</button></div>
-            <div id="ruleList"></div>`;
+          main.innerHTML = `
+            <h3>⚙️ 规则管理</h3>
+            <p style="color:rgba(255,255,255,0.5);margin-bottom:20px;font-size:13px;">添加自定义规则来优化AI客服的回复行为。规则会自动添加到AI的系统提示中。</p>
+            
+            <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+              <button class="btn" onclick="showRuleTemplate('brand')">📦 品牌搜索规则</button>
+              <button class="btn" onclick="showRuleTemplate('fee')">💰 费用说明规则</button>
+              <button class="btn" onclick="showRuleTemplate('product')">🏷️ 商品推荐规则</button>
+              <button class="btn" onclick="showRuleTemplate('custom')">✏️ 自定义规则</button>
+            </div>
+            
+            <div class="form-group" id="ruleForm" style="display:none;">
+              <label style="color:rgba(255,255,255,0.6);font-size:12px;text-transform:uppercase;letter-spacing:1px;">规则内容</label>
+              <textarea id="ruleContent" placeholder="输入规则内容..." rows="4" style="min-height:100px;"></textarea>
+              <div style="display:flex;gap:8px;margin-top:8px;">
+                <button class="btn success" onclick="addRule()">添加规则</button>
+                <button class="btn" onclick="document.getElementById('ruleForm').style.display='none'">取消</button>
+              </div>
+            </div>
+            
+            <div style="margin-top:24px;">
+              <h4 style="color:rgba(255,255,255,0.7);font-size:14px;margin-bottom:12px;">当前规则列表</h4>
+              <div id="ruleList"></div>
+            </div>
+          `;
         }
         if (panelRefresh) clearInterval(panelRefresh);
         panelRefresh = setInterval(() => { if (currentPanel === 'rules') refreshRuleListOnly(); }, 5000);
@@ -747,21 +769,88 @@
   async function deleteKB(id) { await fetch(`/api/kb/delete/${id}`, { method:'DELETE' }); await refreshKBListOnly(); }
 
   // ────── 规则管理 ──────
+  const ruleTemplates = {
+    brand: `【品牌搜索优化规则】
+当用户提到品牌名+商品类型时，搜索关键词必须包含品牌名。
+常见品牌对照：
+- lv/路易威登 → ルイヴィトン
+- gucci/古驰 → グッチ
+- chanel/香奈儿 → シャネル
+- prada/普拉达 → プラダ
+- hermes/爱马仕 → エルメス
+- dior/迪奥 → ディオール
+- coach/蔻驰 → コーチ
+- nike/耐克 → ナイキ
+- adidas/阿迪达斯 → アディダス
+- 优衣库 → ユニクロ
+
+示例：用户说"lv的挎包"，应搜索"ルイヴィトン クロスバッグ"而不是只搜"クロスバッグ"。`,
+    fee: `【费用说明规则】
+当用户询问费用时，请详细说明以下内容：
+1. 商品价格（日本网站标价）
+2. 日本国内运费（通常500-1000日元）
+3. 国际运费（根据重量和目的地计算）
+4. 服务费（商品价格的10%，最低300日元）
+5. 关税（由各国海关决定，建议用户咨询当地海关）
+
+提供计算器链接：https://cn.hoyoyo.com/help~calculator.html`,
+    product: `【商品推荐规则】
+当用户询问某类商品推荐时：
+1. 先询问用户的具体需求（品牌偏好、预算范围、用途等）
+2. 提供2-3个搜索关键词供用户选择
+3. 引导用户使用HOYOYO搜索功能查看实际商品
+4. 提醒用户可以点击"转人工"获取更专业的建议`,
+    custom: ''
+  };
+  
+  function showRuleTemplate(type) {
+    const form = document.getElementById('ruleForm');
+    const textarea = document.getElementById('ruleContent');
+    form.style.display = 'block';
+    textarea.value = ruleTemplates[type] || '';
+    textarea.focus();
+  }
+  
   async function addRule() {
     const content = document.getElementById('ruleContent').value.trim();
     if (!content) return alert('请输入规则内容');
     await fetchJSON('/api/rules/add', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ content }) });
     document.getElementById('ruleContent').value = '';
+    document.getElementById('ruleForm').style.display = 'none';
     await refreshRuleListOnly();
   }
   async function refreshRuleListOnly() {
     const rules = await fetchJSON('/api/rules');
     const div = document.getElementById('ruleList');
     if (div) {
-      div.innerHTML = rules.map(r => `<div class="chat-message"><p>${r.content}</p><button class="btn danger" onclick="deleteRule('${r.id}')">删除</button></div>`).join('');
+      div.innerHTML = rules.map(r => `
+        <div class="chat-message" style="position:relative;">
+          <p style="white-space:pre-wrap;">${r.content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+          <div style="margin-top:10px;display:flex;gap:6px;">
+            <button class="btn" onclick="editRule('${r.id}',\`${r.content.replace(/`/g,'\\`').replace(/\n/g,'\\n')}\`)" style="font-size:12px;padding:4px 10px;">编辑</button>
+            <button class="btn danger" onclick="deleteRule('${r.id}')" style="font-size:12px;padding:4px 10px;">删除</button>
+          </div>
+        </div>
+      `).join('');
     }
   }
-  async function deleteRule(id) { await fetch(`/api/rules/${id}`, { method:'DELETE' }); await refreshRuleListOnly(); }
+  async function editRule(id, currentContent) {
+    const newContent = prompt('编辑规则内容：', currentContent.replace(/\\n/g,'\n'));
+    if (newContent && newContent.trim() && newContent !== currentContent.replace(/\\n/g,'\n')) {
+      await fetch(`/api/rules/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: newContent.trim() })
+      });
+      await refreshRuleListOnly();
+    }
+  }
+  async function deleteRule(id) { 
+    if (confirm('确定删除这条规则吗？')) {
+      await fetch(`/api/rules/${id}`, { method: 'DELETE' }); 
+      await refreshRuleListOnly(); 
+    }
+  }
 
   // ────── 疑难记录 ──────
   async function refreshUnansweredOnly() {

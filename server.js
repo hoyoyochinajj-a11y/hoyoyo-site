@@ -467,6 +467,16 @@ app.post('/api/rules/add', async (req, res) => {
   await dbWrite('aiRules', aiRules);
   res.json({ success: true });
 });
+app.put('/api/rules/:id', async (req, res) => {
+  const { content } = req.body;
+  if (!content) return res.status(400).json({ error: '内容不能为空' });
+  const rule = aiRules.find(r => r.id === req.params.id);
+  if (!rule) return res.status(404).json({ error: '规则不存在' });
+  rule.content = content;
+  rule.updatedAt = new Date().toISOString();
+  await dbWrite('aiRules', aiRules);
+  res.json({ success: true });
+});
 app.delete('/api/rules/:id', async (req, res) => {
   aiRules = aiRules.filter(r => r.id !== req.params.id);
   await dbWrite('aiRules', aiRules);
