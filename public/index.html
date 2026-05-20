@@ -137,6 +137,7 @@
     <div class="cw-title">
       <h3 id="headerTitle">HOYOYO 智能助手</h3>
       <span><span class="dot online" id="statusDot"></span><span id="statusText">在线</span><span class="mode-tag ai" id="modeTag">AI</span></span>
+      <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;">本回答由AI生成，仅供参考</div>
     </div>
     <button class="cw-close" onclick="toggleChat()">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -164,6 +165,7 @@
       <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
     </button>
   </div>
+  <div id="emailHint" style="padding:4px 16px 10px;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;display:none;">请先绑定邮箱以开始对话</div>
 </div>
 
 <!-- 邮箱绑定弹窗 -->
@@ -395,6 +397,7 @@
       body: JSON.stringify({ email })
     }).catch(() => {});
     document.getElementById('emailModal').style.display = 'none';
+    document.getElementById('emailHint').style.display = 'none';
     loadLocalHistory();
     addBubble('assistant', '您好！我是 HOYOYO 智能助手，有什么可以帮您的？😊');
   }
@@ -426,6 +429,7 @@
 
   // 初始化
   if (!userEmail) {
+    document.getElementById('emailHint').style.display = 'block';
     showEmailModal();
   } else {
     loadLocalHistory();
