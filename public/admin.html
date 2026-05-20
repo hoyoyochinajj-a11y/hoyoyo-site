@@ -1598,8 +1598,21 @@
     const box = document.getElementById('humanChatBox');
     if (!box || !selectedUserId) return;
     try {
-      const data = await fetchJSON(`/api/human-history?userId=${encodeURIComponent(selectedUserId)}`);
+      const res = await fetch(`/api/human-history?userId=${encodeURIComponent(selectedUserId)}`);
+      const data = await res.json();
       if (!data || !data.messages) return;
+      
+      // 保存图片数据到localStorage
+      data.messages.forEach(m => {
+        if (m.imageData) {
+          const imageMatch = m.content.match(/\[IMAGE:([^\]]+)\]/);
+          if (imageMatch) {
+            const imageId = imageMatch[1];
+            localStorage.setItem(imageId, m.imageData);
+          }
+        }
+      });
+      
       // 保存当前滚动位置
       const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 50;
       box.innerHTML = data.messages.map(m => {
@@ -1608,17 +1621,11 @@
         const imageMatch = m.content.match(/\[IMAGE:([^\]]+)\]/);
         if (imageMatch) {
           const imageId = imageMatch[1];
-          // 尝试从localStorage获取图片
+          // 尝试从localStorage获取图片（包括服务器返回的）
           let imageSrc = localStorage.getItem(imageId);
-          if (!imageSrc) {
-            // 尝试从其他可能的key获取
-            for (let i = 0; i < localStorage.length; i++) {
-              const key = localStorage.key(i);
-              if (key && key.includes(imageId)) {
-                imageSrc = localStorage.getItem(key);
-                break;
-              }
-            }
+          if (!imageSrc && m.imageData) {
+            imageSrc = m.imageData;
+            localStorage.setItem(imageId, imageSrc);
           }
           if (imageSrc) {
             contentHtml = `<img src="${imageSrc}" style="max-width:200px;max-height:150px;border-radius:8px;display:block;cursor:pointer;" onclick="window.open(this.src)" />`;
@@ -1648,16 +1655,19 @@
 
     // 检查是否有待发送的图片
     let messageToSend = msg;
+    let imageDataToSend = null;
     const pendingImageId = input.dataset.pendingImageId;
+    const pendingImage = input.dataset.pendingImage;
     if (pendingImageId && msg.includes('[图片]')) {
       messageToSend = msg.replace('[图片]', `[IMAGE:${pendingImageId}]`);
+      imageDataToSend = pendingImage ? pendingImage.substring(0, 50000) : null; // 最多发送50KB
     }
 
     try {
       const res = await fetch('/api/human-reply', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ userId: selectedUserId, message: messageToSend })
+        body:JSON.stringify({ userId: selectedUserId, message: messageToSend, imageData: imageDataToSend })
       });
       if (!res.ok) {
         const data = await res.json();

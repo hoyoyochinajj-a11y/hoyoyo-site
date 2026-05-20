@@ -562,10 +562,25 @@ app.post('/api/save-user-email', async (req, res) => {
   res.json({ success: true });
 });
 // 人工客服API - 使用MongoDB原子操作
+// 内存中的图片存储（临时方案，重启后丢失）
+const imageStorage = new Map();
+
 app.post('/api/human-send', async (req, res) => {
   try {
-    const { userId, email, message } = req.body;
+    const { userId, email, message, imageData } = req.body;
     if (!userId || !message) return res.status(400).json({ error: '缺少参数' });
+    
+    // 如果包含图片数据，存储到内存中
+    const imageMatch = message.match(/\[IMAGE:([^\]]+)\]/);
+    if (imageMatch && imageData) {
+      const imageId = imageMatch[1];
+      imageStorage.set(imageId, imageData);
+      // 限制存储数量，最多保留100张图片
+      if (imageStorage.size > 100) {
+        const firstKey = imageStorage.keys().next().value;
+        imageStorage.delete(firstKey);
+      }
+    }
     
     if (USE_MONGODB && mongoConnected) {
       // 使用MongoDB原子操作
@@ -626,6 +641,7 @@ app.get('/api/human-history', async (req, res) => {
     const { userId } = req.query;
     if (!userId) return res.status(400).json({ error: '缺少userId' });
     
+    let messages = [];
     if (USE_MONGODB && mongoConnected) {
       // 标记用户消息为已读
       await HumanChatModel.updateOne(
@@ -634,15 +650,30 @@ app.get('/api/human-history', async (req, res) => {
         { arrayFilters: [{ 'elem.sender': 'user' }] }
       );
       const userChat = await HumanChatModel.findOne({ userId }).lean();
-      res.json({ messages: userChat ? userChat.messages : [] });
+      messages = userChat ? userChat.messages : [];
     } else {
       const chats = await dbRead('humanChats');
       const userChat = chats.find(c => c.userId === userId);
-      if (!userChat) return res.json({ messages: [] });
-      userChat.messages.forEach(m => { if (m.sender === 'user') m.read = true; });
-      await dbWrite('humanChats', chats);
-      res.json({ messages: userChat.messages });
+      if (userChat) {
+        userChat.messages.forEach(m => { if (m.sender === 'user') m.read = true; });
+        await dbWrite('humanChats', chats);
+        messages = userChat.messages;
+      }
     }
+    
+    // 为包含图片标记的消息添加图片数据
+    messages.forEach(m => {
+      const imageMatch = m.content.match(/\[IMAGE:([^\]]+)\]/);
+      if (imageMatch) {
+        const imageId = imageMatch[1];
+        const imageData = imageStorage.get(imageId);
+        if (imageData) {
+          m.imageData = imageData;
+        }
+      }
+    });
+    
+    res.json({ messages });
   } catch (err) {
     console.error('human-history error:', err);
     res.status(500).json({ error: '服务器错误' });
@@ -651,8 +682,20 @@ app.get('/api/human-history', async (req, res) => {
 
 app.post('/api/human-reply', async (req, res) => {
   try {
-    const { userId, message } = req.body;
+    const { userId, message, imageData } = req.body;
     if (!userId || !message) return res.status(400).json({ error: '缺少参数' });
+    
+    // 如果包含图片数据，存储到内存中
+    const imageMatch = message.match(/\[IMAGE:([^\]]+)\]/);
+    if (imageMatch && imageData) {
+      const imageId = imageMatch[1];
+      imageStorage.set(imageId, imageData);
+      // 限制存储数量，最多保留100张图片
+      if (imageStorage.size > 100) {
+        const firstKey = imageStorage.keys().next().value;
+        imageStorage.delete(firstKey);
+      }
+    }
     
     if (USE_MONGODB && mongoConnected) {
       const result = await HumanChatModel.findOneAndUpdate(

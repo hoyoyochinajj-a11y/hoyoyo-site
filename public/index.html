@@ -418,11 +418,37 @@
       const res = await fetch(`/api/human-history?userId=${encodeURIComponent(currentUserId)}`);
       if (!res.ok) throw new Error('fetch failed');
       const data = await res.json();
+      
+      // 保存服务器返回的图片数据到localStorage
+      if (data.messages) {
+        data.messages.forEach(m => {
+          if (m.imageData) {
+            const imageMatch = m.content.match(/\[IMAGE:([^\]]+)\]/);
+            if (imageMatch) {
+              const imageId = imageMatch[1];
+              localStorage.setItem(imageId, m.imageData);
+            }
+          }
+        });
+      }
+      
       if (data.messages && data.messages.length > 0) {
         const newMsgs = data.messages.slice(lastHumanMsgCount);
         newMsgs.forEach(m => {
           if (m.sender === 'agent') {
-            addBubble('human-agent', m.content, false);
+            // 检查是否是图片消息
+            const imageMatch = m.content.match(/\[IMAGE:([^\]]+)\]/);
+            if (imageMatch) {
+              const imageId = imageMatch[1];
+              const imageSrc = localStorage.getItem(imageId) || m.imageData;
+              if (imageSrc) {
+                addImageBubble('human-agent', imageSrc, imageId, false);
+              } else {
+                addBubble('human-agent', m.content, false);
+              }
+            } else {
+              addBubble('human-agent', m.content, false);
+            }
           }
         });
         lastHumanMsgCount = data.messages.length;
@@ -552,22 +578,67 @@
   // 图片存储管理
   function saveImageToStorage(imageId, base64Data) {
     try {
-      localStorage.setItem(`img_${imageId}`, base64Data);
+      localStorage.setItem(imageId, base64Data);
     } catch(e) {
       console.warn('localStorage full, removing old images');
       // 清理旧图片
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith('img_')) {
+        if (key && (key.startsWith('img_') || key.startsWith('admin_img_'))) {
           localStorage.removeItem(key);
         }
       }
-      localStorage.setItem(`img_${imageId}`, base64Data);
+      localStorage.setItem(imageId, base64Data);
     }
   }
 
   function getImageFromStorage(imageId) {
-    return localStorage.getItem(`img_${imageId}`);
+    // 直接尝试获取
+    let data = localStorage.getItem(imageId);
+    if (data) return data;
+    // 尝试加前缀
+    data = localStorage.getItem(`img_${imageId}`);
+    if (data) return data;
+    // 搜索包含该ID的任何key
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.includes(imageId)) {
+        return localStorage.getItem(key);
+      }
+    }
+    return null;
+  }
+
+  // 压缩图片
+  function compressImage(base64, maxWidth = 800, maxHeight = 600, quality = 0.7) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = function() {
+        let width = img.width;
+        let height = img.height;
+        
+        // 计算缩放比例
+        if (width > maxWidth) {
+          height = Math.round(height * maxWidth / width);
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = Math.round(width * maxHeight / height);
+          height = maxHeight;
+        }
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // 转换为压缩后的base64
+        const compressed = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressed);
+      };
+      img.src = base64;
+    });
   }
 
   async function sendImageMessage(base64Image) {
@@ -576,19 +647,28 @@
     if (!currentUserId) { alert(t.pleaseEmail); return; }
 
     try {
+      // 压缩图片
+      const compressedImage = await compressImage(base64Image);
+      
       // 生成图片ID
       const imageId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
       // 保存图片到localStorage
-      saveImageToStorage(imageId, base64Image);
+      saveImageToStorage(imageId, compressedImage);
       // 添加图片消息到聊天框
-      addImageBubble('user', base64Image, imageId);
+      addImageBubble('user', compressedImage, imageId);
 
       if (isHumanMode) {
-        // 人工模式：发送图片ID
+        // 人工模式：发送图片ID和压缩后的数据（分段发送）
+        // 由于base64可能还是很大，我们发送ID，后台通过其他方式获取
         await fetch('/api/human-send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: currentUserId, email: userEmail, message: `[IMAGE:${imageId}]` })
+          body: JSON.stringify({ 
+            userId: currentUserId, 
+            email: userEmail, 
+            message: `[IMAGE:${imageId}]`,
+            imageData: compressedImage.substring(0, 50000) // 最多发送50KB数据
+          })
         });
       } else {
         // AI模式：提示用户AI暂时无法识别图片
