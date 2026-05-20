@@ -173,14 +173,19 @@ async function dbWrite(type, data) {
   if (!config) throw new Error(`Unknown data type: ${type}`);
   
   if (USE_MONGODB && mongoConnected) {
-    // 使用 dropCollection 避免重复键错误
-    try {
-      await config.model.collection.drop();
-    } catch (e) {
-      // 集合可能不存在，忽略错误
+    // 只用于非人工客服数据，人工客服使用原子操作
+    if (type === 'humanChats') {
+      console.warn('dbWrite should not be used for humanChats, use atomic operations instead');
+      return;
     }
-    if (data.length > 0) {
-      await config.model.insertMany(data, { ordered: false });
+    try {
+      await config.model.deleteMany({});
+      if (data.length > 0) {
+        await config.model.insertMany(data, { ordered: false });
+      }
+    } catch (err) {
+      console.error(`dbWrite error for ${type}:`, err);
+      throw err;
     }
   } else {
     writeJSON(config.file, data);
@@ -556,65 +561,162 @@ app.post('/api/save-user-email', async (req, res) => {
   }
   res.json({ success: true });
 });
+// 人工客服API - 使用MongoDB原子操作
 app.post('/api/human-send', async (req, res) => {
-  const { userId, email, message } = req.body;
-  if (!userId || !message) return res.status(400).json({ error: '缺少参数' });
-  const chats = await dbRead('humanChats');
-  let userChat = chats.find(c => c.userId === userId);
-  if (!userChat) {
-    userChat = { userId, email: email || '', note: '', messages: [], lastActive: new Date().toISOString() };
-    chats.push(userChat);
+  try {
+    const { userId, email, message } = req.body;
+    if (!userId || !message) return res.status(400).json({ error: '缺少参数' });
+    
+    if (USE_MONGODB && mongoConnected) {
+      // 使用MongoDB原子操作
+      await HumanChatModel.findOneAndUpdate(
+        { userId },
+        { 
+          $set: { email: email || '', lastActive: new Date() },
+          $push: { messages: { sender: 'user', content: message, time: new Date(), read: false } }
+        },
+        { upsert: true, new: true }
+      );
+    } else {
+      // 本地JSON模式
+      const chats = await dbRead('humanChats');
+      let userChat = chats.find(c => c.userId === userId);
+      if (!userChat) {
+        userChat = { userId, email: email || '', note: '', messages: [], lastActive: new Date().toISOString() };
+        chats.push(userChat);
+      }
+      userChat.messages.push({ sender: 'user', content: message, time: new Date().toISOString(), read: false });
+      userChat.lastActive = new Date().toISOString();
+      await dbWrite('humanChats', chats);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('human-send error:', err);
+    res.status(500).json({ error: '服务器错误' });
   }
-  userChat.messages.push({ sender: 'user', content: message, time: new Date().toISOString() });
-  userChat.lastActive = new Date().toISOString();
-  await dbWrite('humanChats', chats);
-  res.json({ success: true });
 });
+
 app.get('/api/human-user-list', async (req, res) => {
-  const chats = await dbRead('humanChats');
-  res.json(chats.map(c => ({
-    userId: c.userId,
-    email: c.email || '',
-    lastActive: c.lastActive,
-    unread: c.messages.filter(m => m.sender === 'user' && !m.read).length
-  })));
+  try {
+    if (USE_MONGODB && mongoConnected) {
+      const chats = await HumanChatModel.find({}).lean();
+      res.json(chats.map(c => ({
+        userId: c.userId,
+        email: c.email || '',
+        lastActive: c.lastActive,
+        unread: c.messages.filter(m => m.sender === 'user' && !m.read).length
+      })));
+    } else {
+      const chats = await dbRead('humanChats');
+      res.json(chats.map(c => ({
+        userId: c.userId,
+        email: c.email || '',
+        lastActive: c.lastActive,
+        unread: c.messages.filter(m => m.sender === 'user' && !m.read).length
+      })));
+    }
+  } catch (err) {
+    console.error('human-user-list error:', err);
+    res.status(500).json({ error: '服务器错误' });
+  }
 });
+
 app.get('/api/human-history', async (req, res) => {
-  const { userId } = req.query;
-  if (!userId) return res.status(400).json({ error: '缺少userId' });
-  const chats = await dbRead('humanChats');
-  const userChat = chats.find(c => c.userId === userId);
-  if (!userChat) return res.json({ messages: [] });
-  userChat.messages.forEach(m => { if (m.sender === 'user') m.read = true; });
-  await dbWrite('humanChats', chats);
-  res.json({ messages: userChat.messages });
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: '缺少userId' });
+    
+    if (USE_MONGODB && mongoConnected) {
+      // 标记用户消息为已读
+      await HumanChatModel.updateOne(
+        { userId },
+        { $set: { 'messages.$[elem].read': true } },
+        { arrayFilters: [{ 'elem.sender': 'user' }] }
+      );
+      const userChat = await HumanChatModel.findOne({ userId }).lean();
+      res.json({ messages: userChat ? userChat.messages : [] });
+    } else {
+      const chats = await dbRead('humanChats');
+      const userChat = chats.find(c => c.userId === userId);
+      if (!userChat) return res.json({ messages: [] });
+      userChat.messages.forEach(m => { if (m.sender === 'user') m.read = true; });
+      await dbWrite('humanChats', chats);
+      res.json({ messages: userChat.messages });
+    }
+  } catch (err) {
+    console.error('human-history error:', err);
+    res.status(500).json({ error: '服务器错误' });
+  }
 });
+
 app.post('/api/human-reply', async (req, res) => {
-  const { userId, message } = req.body;
-  if (!userId || !message) return res.status(400).json({ error: '缺少参数' });
-  const chats = await dbRead('humanChats');
-  const userChat = chats.find(c => c.userId === userId);
-  if (!userChat) return res.status(404).json({ error: '用户不存在' });
-  userChat.messages.push({ sender: 'agent', content: message, time: new Date().toISOString() });
-  userChat.lastActive = new Date().toISOString();
-  await dbWrite('humanChats', chats);
-  res.json({ success: true });
+  try {
+    const { userId, message } = req.body;
+    if (!userId || !message) return res.status(400).json({ error: '缺少参数' });
+    
+    if (USE_MONGODB && mongoConnected) {
+      const result = await HumanChatModel.findOneAndUpdate(
+        { userId },
+        { 
+          $set: { lastActive: new Date() },
+          $push: { messages: { sender: 'agent', content: message, time: new Date(), read: true } }
+        },
+        { new: true }
+      );
+      if (!result) return res.status(404).json({ error: '用户不存在' });
+    } else {
+      const chats = await dbRead('humanChats');
+      const userChat = chats.find(c => c.userId === userId);
+      if (!userChat) return res.status(404).json({ error: '用户不存在' });
+      userChat.messages.push({ sender: 'agent', content: message, time: new Date().toISOString(), read: true });
+      userChat.lastActive = new Date().toISOString();
+      await dbWrite('humanChats', chats);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('human-reply error:', err);
+    res.status(500).json({ error: '服务器错误' });
+  }
 });
+
 app.get('/api/human-note', async (req, res) => {
-  const { userId } = req.query;
-  const chats = await dbRead('humanChats');
-  const userChat = chats.find(c => c.userId === userId);
-  if (!userChat) return res.status(404).json({ error: '用户不存在' });
-  res.json({ note: userChat.note || '' });
+  try {
+    const { userId } = req.query;
+    if (USE_MONGODB && mongoConnected) {
+      const userChat = await HumanChatModel.findOne({ userId }).lean();
+      res.json({ note: userChat ? userChat.note || '' : '' });
+    } else {
+      const chats = await dbRead('humanChats');
+      const userChat = chats.find(c => c.userId === userId);
+      res.json({ note: userChat ? userChat.note || '' : '' });
+    }
+  } catch (err) {
+    console.error('human-note error:', err);
+    res.status(500).json({ error: '服务器错误' });
+  }
 });
+
 app.post('/api/human-note', async (req, res) => {
-  const { userId, note } = req.body;
-  const chats = await dbRead('humanChats');
-  const userChat = chats.find(c => c.userId === userId);
-  if (!userChat) return res.status(404).json({ error: '用户不存在' });
-  userChat.note = note;
-  await dbWrite('humanChats', chats);
-  res.json({ success: true });
+  try {
+    const { userId, note } = req.body;
+    if (USE_MONGODB && mongoConnected) {
+      await HumanChatModel.findOneAndUpdate(
+        { userId },
+        { $set: { note } },
+        { upsert: true }
+      );
+    } else {
+      const chats = await dbRead('humanChats');
+      const userChat = chats.find(c => c.userId === userId);
+      if (!userChat) return res.status(404).json({ error: '用户不存在' });
+      userChat.note = note;
+      await dbWrite('humanChats', chats);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('human-note error:', err);
+    res.status(500).json({ error: '服务器错误' });
+  }
 });
 
 // 其他

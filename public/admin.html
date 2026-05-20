@@ -1541,13 +1541,22 @@
     if (!input) return;
     const msg = input.value.trim();
     if (!msg) return;
-    await fetchJSON('/api/human-reply', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({ userId: selectedUserId, message: msg })
-    });
-    input.value = '';
-    await loadChat();
+    try {
+      const res = await fetch('/api/human-reply', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ userId: selectedUserId, message: msg })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || '发送失败');
+      }
+      input.value = '';
+      await loadChat();
+    } catch (err) {
+      alert('发送失败: ' + err.message);
+      console.error('sendReply error:', err);
+    }
   }
 
   async function loadNote() {
