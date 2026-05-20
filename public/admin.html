@@ -1213,8 +1213,8 @@
       else if (name === 'ai-chats') {
         main.innerHTML = `
           <div class="page-header">
-            <h1 class="page-title">客服话术配置</h1>
-            <p class="page-subtitle">管理AI客服的对话记录与回复话术</p>
+            <h1 class="page-title">AI对话记录</h1>
+            <p class="page-subtitle">查看AI客服的对话记录</p>
           </div>
           <div id="list"></div>
         `;
@@ -1226,8 +1226,8 @@
       else if (name === 'suggests') {
         main.innerHTML = `
           <div class="page-header">
-            <h1 class="page-title">人工转接提醒设置</h1>
-            <p class="page-subtitle">配置用户建议与系统提醒规则</p>
+            <h1 class="page-title">建议列表</h1>
+            <p class="page-subtitle">查看用户提交的建议</p>
           </div>
           <div id="list"></div>
         `;
@@ -1239,8 +1239,8 @@
       else if (name === 'demands') {
         main.innerHTML = `
           <div class="page-header">
-            <h1 class="page-title">邮箱预填写数据模块</h1>
-            <p class="page-subtitle">管理用户需求与邮箱数据关联</p>
+            <h1 class="page-title">需求列表</h1>
+            <p class="page-subtitle">查看用户提交的需求</p>
           </div>
           <div id="list"></div>
         `;
@@ -1304,8 +1304,8 @@
       else if (name === 'emails') {
         main.innerHTML = `
           <div class="page-header">
-            <h1 class="page-title">访客数据中心</h1>
-            <p class="page-subtitle">管理所有访客邮箱与联系信息</p>
+            <h1 class="page-title">用户邮箱</h1>
+            <p class="page-subtitle">管理所有访客邮箱</p>
           </div>
           <div id="list"></div>
         `;
@@ -1318,8 +1318,8 @@
         if (!document.getElementById('kbList')) {
           main.innerHTML = `
             <div class="page-header">
-              <h1 class="page-title">多语言全局设置</h1>
-              <p class="page-subtitle">配置AI知识库与多语言支持</p>
+              <h1 class="page-title">知识库</h1>
+              <p class="page-subtitle">配置AI知识库</p>
             </div>
             <div class="panel">
               <div class="form-group">
@@ -1519,8 +1519,10 @@
     const box = document.getElementById('humanChatBox');
     if (!box || !selectedUserId) return;
     try {
-      const data = await fetchJSON(`/api/human-history?userId=${selectedUserId}`);
+      const data = await fetchJSON(`/api/human-history?userId=${encodeURIComponent(selectedUserId)}`);
       if (!data || !data.messages) return;
+      // 保存当前滚动位置
+      const wasAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 50;
       box.innerHTML = data.messages.map(m => `
         <div class="message ${m.sender==='user'?'user':'agent'}">
           <div class="message-bubble">
@@ -1529,7 +1531,7 @@
           </div>
         </div>
       `).join('');
-      box.scrollTop = box.scrollHeight;
+      if (wasAtBottom) box.scrollTop = box.scrollHeight;
     } catch(e) {}
   }
 
@@ -1941,10 +1943,9 @@
 
   function startRefresh() {
     loadPanel('dashboard');
+    // 只刷新需要实时数据的面板
     setInterval(() => {
-      if (!['dashboard','human','knowledge','rules','unanswered','learn','admins'].includes(currentPanel)) {
-        loadPanel(currentPanel);
-      }
+      if (currentPanel === 'human') refreshHumanData();
     }, 3000);
   }
 </script>

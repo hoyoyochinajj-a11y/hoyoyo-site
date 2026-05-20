@@ -240,20 +240,13 @@
 <script>
   // ======== 多语言 ========
   const i18n = {
-    'zh-CN': { header:'HOYOYO 智能助手', headerHuman:'HOYOYO 人工客服', emailDesc:'绑定邮箱，记录专属对话', emailPlaceholder:'name@hoyoyo.com', startChat:'开始对话', switchHuman:'👤 转人工客服', switchAI:'🤖 返回AI', suggest:'💡 提建议', demand:'📋 提需求', inputPlaceholder:'输入问题，或发煤炉链接/搜商品名...', send:'发送', pleaseEmail:'请先绑定邮箱', validEmail:'请输入有效邮箱', suggestPrompt:'请输入你的建议：', demandPrompt:'请描述你的服务需求：', suggestThanks:'感谢你的建议！', demandThanks:'需求已记录,我们会尽快处理！', networkError:'网络开小差了，请稍后再试～', waitMessage:'稍等一下，小助手正在赶来的路上～', humanWelcome:'已为您转接人工客服，请稍等客服回复～', aiWelcome:'已切换回AI智能助手' },
+    'zh-CN': { header:'HOYOYO 智能助手', headerHuman:'HOYOYO 人工客服', emailDesc:'绑定邮箱，记录专属对话', emailPlaceholder:'name@hoyoyo.com', startChat:'开始对话', switchHuman:'👤 转人工', switchAI:'🤖 返回AI', suggest:'💡 提建议', demand:'📋 提需求', inputPlaceholder:'输入问题，或发煤炉链接/搜商品名...', send:'发送', pleaseEmail:'请先绑定邮箱', validEmail:'请输入有效邮箱', suggestPrompt:'请输入你的建议：', demandPrompt:'请描述你的服务需求：', suggestThanks:'感谢你的建议！', demandThanks:'需求已记录,我们会尽快处理！', networkError:'网络开小差了，请稍后再试～', waitMessage:'稍等一下，小助手正在赶来的路上～', humanWelcome:'已为您转接人工客服，请稍等客服回复～', aiWelcome:'已切换回AI智能助手' },
     'zh-TW': { header:'HOYOYO 智能助手', headerHuman:'HOYOYO 人工客服', emailDesc:'綁定信箱，記錄專屬對話', emailPlaceholder:'name@hoyoyo.com', startChat:'開始對話', switchHuman:'👤 轉人工客服', switchAI:'🤖 返回AI', suggest:'💡 提供建議', demand:'📋 提出需求', inputPlaceholder:'輸入問題，或發煤爐連結/搜尋商品名...', send:'發送', pleaseEmail:'請先綁定信箱', validEmail:'請輸入有效信箱', suggestPrompt:'請輸入您的建議：', demandPrompt:'請描述您的服務需求：', suggestThanks:'感謝您的建議！', demandThanks:'需求已記錄，我們會儘快處理！', networkError:'網路連線異常，請稍後再試～', waitMessage:'請稍候，小幫手正在趕來的路上～', humanWelcome:'已為您轉接人工客服，請稍等客服回覆～', aiWelcome:'已切換回AI智能助手' },
     'en': { header:'HOYOYO Assistant', headerHuman:'HOYOYO Live Agent', emailDesc:'Bind email for your conversation', emailPlaceholder:'name@hoyoyo.com', startChat:'Start Chat', switchHuman:'👤 Live Agent', switchAI:'🤖 Back to AI', suggest:'💡 Suggestion', demand:'📋 Request', inputPlaceholder:'Type question, or Mercari link/product name...', send:'Send', pleaseEmail:'Please bind your email first', validEmail:'Please enter a valid email', suggestPrompt:'Please enter your suggestion:', demandPrompt:'Please describe your service request:', suggestThanks:'Thanks for your suggestion!', demandThanks:'Request recorded, we will handle it soon!', networkError:'Network error, please try again later~', waitMessage:'Just a moment, our assistant is on the way~', humanWelcome:'Connected to live agent, please wait for a response~', aiWelcome:'Switched back to AI assistant' },
     'ja': { header:'HOYOYO アシスタント', headerHuman:'HOYOYO 有人対応', emailDesc:'メールアドレスを登録して会話を保存', emailPlaceholder:'name@hoyoyo.com', startChat:'チャット開始', switchHuman:'👤 有人対応', switchAI:'🤖 AIに戻る', suggest:'💡 提案する', demand:'📋 要望を送る', inputPlaceholder:'質問、またはメルカリのリンク/商品名を入力...', send:'送信', pleaseEmail:'先にメールアドレスを登録してください', validEmail:'有効なメールアドレスを入力してください', suggestPrompt:'提案を入力してください：', demandPrompt:'サービス要望を説明してください：', suggestThanks:'ご提案ありがとうございます！', demandThanks:'要望を受け付けました。早急に対応いたします！', networkError:'ネットワークエラーです。後でもう一度お試しください～', waitMessage:'少々お待ちください、アシスタントが向かっています～', humanWelcome:'有人客服に接続しました。返信をお待ちください～', aiWelcome:'AIアシスタントに戻りました' }
   };
-  function getLang() {
-    const lang = navigator.language || navigator.userLanguage;
-    if (lang.startsWith('zh-TW') || lang.startsWith('zh-HK')) return 'zh-TW';
-    if (lang.startsWith('zh')) return 'zh-CN';
-    if (lang.startsWith('ja')) return 'ja';
-    if (lang.startsWith('en')) return 'en';
-    return 'zh-CN';
-  }
-  const t = i18n[getLang()];
+  // 强制简体中文
+  const t = i18n['zh-CN'];
 
   let userEmail = localStorage.getItem('hoyoyo_email');
   const chatBox = document.getElementById('chatBox');
