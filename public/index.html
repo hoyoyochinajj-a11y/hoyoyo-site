@@ -300,11 +300,19 @@
     if (role === 'assistant') msgClass = 'ai';
     else if (role === 'human-agent') msgClass = 'human-agent';
     div.className = `msg ${msgClass}`;
-    const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const linked = linkify(escaped);
+
+    // 检查是否是图片消息
+    let contentHtml;
+    if (text && text.startsWith('[IMG]')) {
+      contentHtml = renderMessageContent(text);
+    } else {
+      const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      contentHtml = linkify(escaped);
+    }
+
     const avatarIcon = role === 'user' ? '😊' : (role === 'human-agent' ? '👩‍💼' : '🤖');
     const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-    div.innerHTML = `<div class="msg-avatar">${avatarIcon}</div><div class="msg-content"><div class="msg-bubble">${linked}</div><div class="msg-time">${time}</div></div>`;
+    div.innerHTML = `<div class="msg-avatar">${avatarIcon}</div><div class="msg-content"><div class="msg-bubble">${contentHtml}</div><div class="msg-time">${time}</div></div>`;
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
     if (save && userEmail) {
@@ -545,17 +553,18 @@
     if (!userEmail) { showEmailModal(); return; }
     const currentUserId = getUserId();
     if (!currentUserId) { alert(t.pleaseEmail); return; }
-    
+
     try {
       // 添加图片消息到聊天框（显示实际图片）
       addImageBubble('user', base64Image);
-      
+
       if (isHumanMode) {
-        // 人工模式：发送图片标记，实际图片通过其他方式传输
+        // 人工模式：发送图片数据（截断base64避免过大）
+        const shortBase64 = base64Image.length > 1000 ? base64Image.substring(0, 1000) + '...[图片数据过长已截断]' : base64Image;
         await fetch('/api/human-send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: currentUserId, email: userEmail, message: '[用户发送了图片]' })
+          body: JSON.stringify({ userId: currentUserId, email: userEmail, message: '[IMG]' + shortBase64 })
         });
       } else {
         // AI模式：提示用户AI暂时无法识别图片
@@ -586,13 +595,33 @@
     `;
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
-    
+
     if (save && userEmail) {
       let history = JSON.parse(localStorage.getItem(`chat_${userEmail}`) || '[]');
-      history.push({ role, content: '[图片]', imageSrc });
+      history.push({ role, content: '[IMG]', imageSrc });
       if (history.length > 50) history = history.slice(-50);
       localStorage.setItem(`chat_${userEmail}`, JSON.stringify(history));
     }
+  }
+
+  // 渲染消息内容（支持图片）
+  function renderMessageContent(content) {
+    if (!content) return '';
+    // 检测图片标记 [IMG]base64...
+    if (content.startsWith('[IMG]')) {
+      const imageSrc = content.substring(5);
+      // 检查是否是有效的base64图片数据
+      if (imageSrc.startsWith('data:image')) {
+        return `<img src="${imageSrc}" style="max-width:200px;max-height:150px;border-radius:8px;display:block;cursor:pointer;" onclick="window.open(this.src)" />`;
+      }
+      return '<span style="color:rgba(255,255,255,0.5);">[图片]</span>';
+    }
+    return escapeHtml(content);
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   // 点击外部关闭表情选择器
