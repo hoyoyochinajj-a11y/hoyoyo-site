@@ -55,6 +55,7 @@ const ChatSchema = new mongoose.Schema({
 const ChatModel = mongoose.models.Chat || mongoose.model('Chat', ChatSchema);
 
 const HumanChatSchema = new mongoose.Schema({
+  _id: String,
   userId: String,
   email: String,
   note: String,
@@ -172,9 +173,14 @@ async function dbWrite(type, data) {
   if (!config) throw new Error(`Unknown data type: ${type}`);
   
   if (USE_MONGODB && mongoConnected) {
-    await config.model.deleteMany({});
+    // 使用 dropCollection 避免重复键错误
+    try {
+      await config.model.collection.drop();
+    } catch (e) {
+      // 集合可能不存在，忽略错误
+    }
     if (data.length > 0) {
-      await config.model.insertMany(data);
+      await config.model.insertMany(data, { ordered: false });
     }
   } else {
     writeJSON(config.file, data);
