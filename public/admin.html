@@ -1216,12 +1216,20 @@
             <h1 class="page-title">AI对话记录</h1>
             <p class="page-subtitle">查看AI客服的对话记录</p>
           </div>
+          <div class="panel" style="margin-bottom:20px;">
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+              <input type="date" id="chatDateFilter" style="padding:8px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:white;" onchange="filterChats()">
+              <input type="text" id="chatKeywordFilter" placeholder="搜索关键词..." style="padding:8px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:white;flex:1;min-width:200px;" onkeyup="filterChats()">
+              <select id="chatUserFilter" style="padding:8px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:white;min-width:150px;" onchange="filterChats()">
+                <option value="">全部用户</option>
+              </select>
+              <button class="btn" onclick="exportChats()">📥 导出</button>
+            </div>
+          </div>
+          <div id="chatStats" style="margin-bottom:16px;color:rgba(255,255,255,0.6);font-size:14px;"></div>
           <div id="list"></div>
         `;
-        const data = await fetchJSON('/api/ai-chats') || [];
-        document.getElementById('list').innerHTML = data.length > 0
-          ? data.map(c => `<div class="chat-message"><b>${c.email}</b> <small>${new Date(c.time).toLocaleString()}</small><br><b>问：</b>${c.message}<br><b>答：</b>${c.reply}</div>`).join('')
-          : '<div class="empty-state"><div class="empty-state-icon">💬</div><div class="empty-state-text">暂无对话记录</div></div>';
+        await loadChatsData();
       }
       else if (name === 'suggests') {
         main.innerHTML = `
@@ -1288,9 +1296,27 @@
                   <input type="text" class="chat-input" id="noteInput" placeholder="添加备注..." />
                   <button class="btn secondary" onclick="saveNote()">保存备注</button>
                 </div>
-                <div class="input-row">
+                <div class="input-row" style="position:relative;">
+                  <button class="btn-icon" onclick="toggleAdminEmojiPicker()" title="表情">😊</button>
+                  <input type="file" id="adminImageInput" accept="image/*" style="display:none" onchange="handleAdminImageUpload(event)" />
+                  <button class="btn-icon" onclick="document.getElementById('adminImageInput').click()" title="图片">📷</button>
                   <input type="text" class="chat-input" id="humanReplyInput" placeholder="输入回复消息..." onkeypress="if(event.keyCode==13) sendReply()" />
                   <button class="btn-send" onclick="sendReply()">发送</button>
+                  <!-- 表情选择器 -->
+                  <div id="adminEmojiPicker" style="display:none;position:absolute;bottom:50px;left:0;background:rgba(30,30,60,0.95);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;max-width:280px;box-shadow:0 10px 40px rgba(0,0,0,0.3);z-index:100;">
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+                      <span style="cursor:pointer;font-size:20px;padding:4px;border-radius:6px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" onclick="insertAdminEmoji('😊')">😊</span>
+                      <span style="cursor:pointer;font-size:20px;padding:4px;border-radius:6px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" onclick="insertAdminEmoji('😂')">😂</span>
+                      <span style="cursor:pointer;font-size:20px;padding:4px;border-radius:6px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" onclick="insertAdminEmoji('👍')">👍</span>
+                      <span style="cursor:pointer;font-size:20px;padding:4px;border-radius:6px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" onclick="insertAdminEmoji('❤️')">❤️</span>
+                      <span style="cursor:pointer;font-size:20px;padding:4px;border-radius:6px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" onclick="insertAdminEmoji('🎉')">🎉</span>
+                      <span style="cursor:pointer;font-size:20px;padding:4px;border-radius:6px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" onclick="insertAdminEmoji('✨')">✨</span>
+                      <span style="cursor:pointer;font-size:20px;padding:4px;border-radius:6px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" onclick="insertAdminEmoji('🙏')">🙏</span>
+                      <span style="cursor:pointer;font-size:20px;padding:4px;border-radius:6px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" onclick="insertAdminEmoji('👏')">👏</span>
+                      <span style="cursor:pointer;font-size:20px;padding:4px;border-radius:6px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" onclick="insertAdminEmoji('💪')">💪</span>
+                      <span style="cursor:pointer;font-size:20px;padding:4px;border-radius:6px;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'" onclick="insertAdminEmoji('🔥')">🔥</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1559,6 +1585,151 @@
     }
   }
 
+  // ======== AI对话记录功能 ========
+  let allChatsData = [];
+  
+  async function loadChatsData() {
+    try {
+      allChatsData = await fetchJSON('/api/ai-chats') || [];
+      
+      // 填充用户筛选下拉框
+      const userFilter = document.getElementById('chatUserFilter');
+      if (userFilter) {
+        const uniqueUsers = [...new Set(allChatsData.map(c => c.email).filter(e => e))];
+        userFilter.innerHTML = '<option value="">全部用户</option>' + 
+          uniqueUsers.map(email => `<option value="${email}">${email}</option>`).join('');
+      }
+      
+      filterChats();
+    } catch(e) {
+      console.error('loadChatsData error:', e);
+    }
+  }
+  
+  function filterChats() {
+    const dateFilter = document.getElementById('chatDateFilter')?.value;
+    const keywordFilter = document.getElementById('chatKeywordFilter')?.value.toLowerCase();
+    const userFilter = document.getElementById('chatUserFilter')?.value;
+    const listDiv = document.getElementById('list');
+    const statsDiv = document.getElementById('chatStats');
+    
+    if (!listDiv) return;
+    
+    let filtered = allChatsData;
+    
+    // 按日期筛选
+    if (dateFilter) {
+      const filterDate = new Date(dateFilter).toDateString();
+      filtered = filtered.filter(c => new Date(c.time).toDateString() === filterDate);
+    }
+    
+    // 按用户筛选
+    if (userFilter) {
+      filtered = filtered.filter(c => c.email === userFilter);
+    }
+    
+    // 按关键词筛选
+    if (keywordFilter) {
+      filtered = filtered.filter(c => 
+        (c.message && c.message.toLowerCase().includes(keywordFilter)) ||
+        (c.reply && c.reply.toLowerCase().includes(keywordFilter)) ||
+        (c.email && c.email.toLowerCase().includes(keywordFilter))
+      );
+    }
+    
+    // 按用户分组显示
+    const grouped = filtered.reduce((acc, chat) => {
+      const email = chat.email || '匿名用户';
+      if (!acc[email]) acc[email] = [];
+      acc[email].push(chat);
+      return acc;
+    }, {});
+    
+    // 更新统计
+    if (statsDiv) {
+      statsDiv.innerHTML = `共 ${filtered.length} 条对话，${Object.keys(grouped).length} 位用户`;
+    }
+    
+    // 渲染列表
+    if (filtered.length === 0) {
+      listDiv.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💬</div><div class="empty-state-text">暂无对话记录</div></div>';
+      return;
+    }
+    
+    listDiv.innerHTML = Object.entries(grouped).map(([email, chats]) => `
+      <div class="chat-group" style="margin-bottom:16px;background:rgba(255,255,255,0.05);border-radius:12px;overflow:hidden;">
+        <div class="chat-group-header" style="padding:12px 16px;background:rgba(99,102,241,0.2);display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleChatGroup(this)">
+          <div>
+            <b>📧 ${email}</b>
+            <span style="margin-left:12px;color:rgba(255,255,255,0.6);font-size:12px;">${chats.length} 条对话</span>
+          </div>
+          <span class="toggle-icon" style="transition:transform 0.3s;">▼</span>
+        </div>
+        <div class="chat-group-content" style="max-height:400px;overflow-y:auto;">
+          ${chats.map(c => `
+            <div class="chat-message" style="border-bottom:1px solid rgba(255,255,255,0.05);padding:12px 16px;">
+              <small style="color:rgba(255,255,255,0.5);">${new Date(c.time).toLocaleString()}</small><br>
+              <b style="color:#a5b4fc;">问：</b>${escapeHtml(c.message)}<br>
+              <b style="color:#86efac;">答：</b>${escapeHtml(c.reply)}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  function toggleChatGroup(header) {
+    const content = header.nextElementSibling;
+    const icon = header.querySelector('.toggle-icon');
+    if (content.style.maxHeight === '0px') {
+      content.style.maxHeight = '400px';
+      icon.style.transform = 'rotate(0deg)';
+    } else {
+      content.style.maxHeight = '0px';
+      icon.style.transform = 'rotate(-90deg)';
+    }
+  }
+  
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  
+  function exportChats() {
+    const dateFilter = document.getElementById('chatDateFilter')?.value;
+    const keywordFilter = document.getElementById('chatKeywordFilter')?.value;
+    const userFilter = document.getElementById('chatUserFilter')?.value;
+    
+    let filtered = allChatsData;
+    if (dateFilter) {
+      const filterDate = new Date(dateFilter).toDateString();
+      filtered = filtered.filter(c => new Date(c.time).toDateString() === filterDate);
+    }
+    if (userFilter) filtered = filtered.filter(c => c.email === userFilter);
+    if (keywordFilter) {
+      filtered = filtered.filter(c => 
+        (c.message && c.message.toLowerCase().includes(keywordFilter.toLowerCase())) ||
+        (c.reply && c.reply.toLowerCase().includes(keywordFilter.toLowerCase()))
+      );
+    }
+    
+    const csv = [
+      ['时间', '用户邮箱', '问题', '回复'].join(','),
+      ...filtered.map(c => [
+        new Date(c.time).toLocaleString(),
+        c.email || '',
+        '"' + (c.message || '').replace(/"/g, '""') + '"',
+        '"' + (c.reply || '').replace(/"/g, '""') + '"'
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `对话记录_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  }
+
   async function loadNote() {
     const input = document.getElementById('noteInput');
     if (!input || !selectedUserId) return;
@@ -1577,6 +1748,51 @@
       body:JSON.stringify({ userId: selectedUserId, note: input.value.trim() })
     });
     showNotification('备注已保存');
+  }
+
+  // 后台人工客服表情功能
+  function toggleAdminEmojiPicker() {
+    const picker = document.getElementById('adminEmojiPicker');
+    if (picker) {
+      picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+    }
+  }
+
+  function insertAdminEmoji(emoji) {
+    const input = document.getElementById('humanReplyInput');
+    if (input) {
+      input.value += emoji;
+      input.focus();
+    }
+    const picker = document.getElementById('adminEmojiPicker');
+    if (picker) picker.style.display = 'none';
+  }
+
+  // 后台人工客服图片上传
+  function handleAdminImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('请选择图片文件');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('图片大小不能超过5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const base64 = e.target.result;
+      // 将图片标记添加到输入框
+      const input = document.getElementById('humanReplyInput');
+      if (input) {
+        input.dataset.pendingImage = base64;
+        input.value += ' [图片]';
+        input.focus();
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   function showNotification(msg) {
