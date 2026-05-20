@@ -188,11 +188,11 @@ function dbReadSync(type, defaultValue = []) {
   return readJSON(config.file, defaultValue);
 }
 
-// 启动时先从本地文件加载（MongoDB 连接后会迁移）
-let aiRules = dbReadSync('aiRules');
-let sitePages = dbReadSync('sitePages');
-let learnedPages = dbReadSync('learnedPages');
-let adminAccounts = dbReadSync('adminAccounts');
+// 启动时使用空数组占位，MongoDB 连接后会正确加载数据
+let aiRules = [];
+let sitePages = [];
+let learnedPages = [];
+let adminAccounts = [];
 
 // 初始化默认管理员账号（如果不存在）
 const defaultAdminUsername = process.env.ADMIN_USERNAME || 'admin';
