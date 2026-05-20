@@ -38,9 +38,10 @@
   .cw-title span .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
   .cw-title span .dot.online { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
   .cw-title span .dot.busy { background: #f97316; box-shadow: 0 0 6px #f97316; }
+  .cw-title span #statusText { color: #22c55e; font-weight: 500; }
   .cw-title .mode-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; margin-left: 6px; }
   .cw-title .mode-tag.ai { background: rgba(99,102,241,0.25); color: #a5b4fc; }
-  .cw-title .mode-tag.human { background: rgba(249,115,22,0.25); color: #fdba74; }
+  .cw-title .mode-tag.human { background: rgba(249,115,22,0.3); color: #fb923c; }
   .cw-close { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
   .cw-close:hover { background: rgba(255,255,255,0.15); }
   .cw-close svg { width: 16px; height: 16px; stroke: rgba(255,255,255,0.6); }
@@ -477,6 +478,7 @@
       title.textContent = t.headerHuman;
       dot.className = 'dot busy';
       statusText.textContent = '人工服务中';
+      statusText.style.color = '#fb923c';
       modeTag.textContent = '人工';
       modeTag.className = 'mode-tag human';
       addSysMsg('已转接人工客服');
@@ -492,6 +494,7 @@
       title.textContent = t.header;
       dot.className = 'dot online';
       statusText.textContent = '在线';
+      statusText.style.color = '#22c55e';
       modeTag.textContent = 'AI';
       modeTag.className = 'mode-tag ai';
       addSysMsg('已切换回AI助手');
