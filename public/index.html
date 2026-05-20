@@ -264,7 +264,8 @@
   let isHumanMode = false;
   let humanPollTimer = null;
   let lastHumanMsgCount = 0;
-  const userId = userEmail ? btoa(userEmail) : '';
+  function getUserId() { return userEmail ? btoa(userEmail) : ''; }
+  let userId = getUserId();
 
   function linkify(text) {
     return text.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
@@ -371,12 +372,14 @@
   }
 
   async function sendHumanMsg(text) {
+    const currentUserId = getUserId();
+    if (!currentUserId) { alert(t.pleaseEmail); return; }
     sendBtn.disabled = true;
     try {
       await fetch('/api/human-send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, email: userEmail, message: text })
+        body: JSON.stringify({ userId: currentUserId, email: userEmail, message: text })
       });
     } catch(e) { console.error(e); }
     sendBtn.disabled = false;
@@ -386,7 +389,8 @@
   async function pollHumanMessages() {
     if (!isHumanMode || !userId) return;
     try {
-      const res = await fetch(`/api/human-history?userId=${userId}`);
+      const res = await fetch(`/api/human-history?userId=${encodeURIComponent(userId)}`);
+      if (!res.ok) throw new Error('fetch failed');
       const data = await res.json();
       if (data.messages && data.messages.length > 0) {
         const newMsgs = data.messages.slice(lastHumanMsgCount);
@@ -397,7 +401,9 @@
         });
         lastHumanMsgCount = data.messages.length;
       }
-    } catch(e) {}
+    } catch(e) {
+      console.warn('pollHumanMessages error:', e);
+    }
   }
 
   function toggleHuman() {
@@ -451,6 +457,7 @@
     const email = document.getElementById('emailInput').value.trim();
     if (!email || !email.includes('@')) { alert(t.validEmail); return; }
     userEmail = email;
+    userId = getUserId(); // 更新 userId
     localStorage.setItem('hoyoyo_email', email);
     fetch('/api/save-user-email', {
       method: 'POST',
