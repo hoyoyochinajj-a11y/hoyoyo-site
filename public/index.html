@@ -549,22 +549,46 @@
     reader.readAsDataURL(file);
   }
 
+  // 图片存储管理
+  function saveImageToStorage(imageId, base64Data) {
+    try {
+      localStorage.setItem(`img_${imageId}`, base64Data);
+    } catch(e) {
+      console.warn('localStorage full, removing old images');
+      // 清理旧图片
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('img_')) {
+          localStorage.removeItem(key);
+        }
+      }
+      localStorage.setItem(`img_${imageId}`, base64Data);
+    }
+  }
+
+  function getImageFromStorage(imageId) {
+    return localStorage.getItem(`img_${imageId}`);
+  }
+
   async function sendImageMessage(base64Image) {
     if (!userEmail) { showEmailModal(); return; }
     const currentUserId = getUserId();
     if (!currentUserId) { alert(t.pleaseEmail); return; }
 
     try {
-      // 添加图片消息到聊天框（显示实际图片）
-      addImageBubble('user', base64Image);
+      // 生成图片ID
+      const imageId = 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      // 保存图片到localStorage
+      saveImageToStorage(imageId, base64Image);
+      // 添加图片消息到聊天框
+      addImageBubble('user', base64Image, imageId);
 
       if (isHumanMode) {
-        // 人工模式：发送图片数据（截断base64避免过大）
-        const shortBase64 = base64Image.length > 1000 ? base64Image.substring(0, 1000) + '...[图片数据过长已截断]' : base64Image;
+        // 人工模式：发送图片ID
         await fetch('/api/human-send', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: currentUserId, email: userEmail, message: '[IMG]' + shortBase64 })
+          body: JSON.stringify({ userId: currentUserId, email: userEmail, message: `[IMAGE:${imageId}]` })
         });
       } else {
         // AI模式：提示用户AI暂时无法识别图片
@@ -579,7 +603,7 @@
   }
 
   // 添加图片消息气泡
-  function addImageBubble(role, imageSrc, save = true) {
+  function addImageBubble(role, imageSrc, imageId, save = true) {
     const div = document.createElement('div');
     div.className = `msg ${role}`;
     const avatarIcon = role === 'user' ? '😊' : (role === 'human-agent' ? '👩‍💼' : '🤖');
@@ -588,7 +612,7 @@
       <div class="msg-avatar">${avatarIcon}</div>
       <div class="msg-content">
         <div class="msg-bubble" style="padding:8px;">
-          <img src="${imageSrc}" style="max-width:200px;max-height:150px;border-radius:8px;display:block;" onclick="window.open(this.src)" />
+          <img src="${imageSrc}" data-image-id="${imageId || ''}" style="max-width:200px;max-height:150px;border-radius:8px;display:block;cursor:pointer;" onclick="window.open(this.src)" />
         </div>
         <div class="msg-time">${time}</div>
       </div>
@@ -598,7 +622,7 @@
 
     if (save && userEmail) {
       let history = JSON.parse(localStorage.getItem(`chat_${userEmail}`) || '[]');
-      history.push({ role, content: '[IMG]', imageSrc });
+      history.push({ role, content: `[IMAGE:${imageId}]`, imageId });
       if (history.length > 50) history = history.slice(-50);
       localStorage.setItem(`chat_${userEmail}`, JSON.stringify(history));
     }
@@ -607,14 +631,15 @@
   // 渲染消息内容（支持图片）
   function renderMessageContent(content) {
     if (!content) return '';
-    // 检测图片标记 [IMG]base64...
-    if (content.startsWith('[IMG]')) {
-      const imageSrc = content.substring(5);
-      // 检查是否是有效的base64图片数据
-      if (imageSrc.startsWith('data:image')) {
+    // 检测图片标记 [IMAGE:imageId]
+    const imageMatch = content.match(/\[IMAGE:([^\]]+)\]/);
+    if (imageMatch) {
+      const imageId = imageMatch[1];
+      const imageSrc = getImageFromStorage(imageId);
+      if (imageSrc) {
         return `<img src="${imageSrc}" style="max-width:200px;max-height:150px;border-radius:8px;display:block;cursor:pointer;" onclick="window.open(this.src)" />`;
       }
-      return '<span style="color:rgba(255,255,255,0.5);">[图片]</span>';
+      return '<span style="color:rgba(255,255,255,0.5);">[图片已过期]</span>';
     }
     return escapeHtml(content);
   }
