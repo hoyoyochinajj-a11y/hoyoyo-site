@@ -698,6 +698,22 @@ app.get('/api/suggests', async (req, res) => res.json((await dbRead('suggests'))
 app.get('/api/demands', async (req, res) => res.json((await dbRead('demands')).reverse()));
 app.get('/api/user-email-list', async (req, res) => res.json((await dbRead('userEmails')).reverse()));
 
+// 健康检查端点
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    version: '5.0-fixed',
+    mongoConnected: USE_MONGODB && mongoConnected,
+    useMongoDB: USE_MONGODB,
+    hasApiKey: !!process.env.VOLC_API_KEY,
+    hasModelId: !!process.env.VOLC_MODEL_ID,
+    aiRulesCount: aiRules.length,
+    sitePagesCount: sitePages.length,
+    learnedPagesCount: learnedPages.length,
+    adminAccountsCount: adminAccounts.length
+  });
+});
+
 // ────── 启动服务 ──────
 async function startServer() {
   await connectMongoDB();
