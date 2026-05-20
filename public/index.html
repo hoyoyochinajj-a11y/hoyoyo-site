@@ -46,31 +46,83 @@
   .cw-close svg { width: 16px; height: 16px; stroke: rgba(255,255,255,0.6); }
 
   /* 消息区域 */
-  .cw-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .cw-messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
   .cw-messages::-webkit-scrollbar { width: 4px; }
   .cw-messages::-webkit-scrollbar-track { background: transparent; }
   .cw-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
-  .msg { display: flex; gap: 8px; max-width: 88%; animation: msgIn 0.3s ease; }
+  /* 消息气泡布局 - IM风格 */
+  .msg { display: flex; gap: 10px; max-width: 85%; animation: msgIn 0.3s ease; }
   .msg.user { align-self: flex-end; flex-direction: row-reverse; }
   @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-  .msg-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+
+  /* 头像 */
+  .msg-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
   .msg.ai .msg-avatar { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
   .msg.human-agent .msg-avatar { background: linear-gradient(135deg, #f97316, #ea580c); }
   .msg.user .msg-avatar { background: linear-gradient(135deg, #06b6d4, #0891b2); }
-  .msg-bubble { padding: 12px 16px; border-radius: 18px; line-height: 1.6; word-break: break-word; font-size: 14px; }
-  .msg.ai .msg-bubble { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.08); color: #e2e8f0; border-bottom-left-radius: 4px; }
-  .msg.human-agent .msg-bubble { background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.15); color: #fed7aa; border-bottom-left-radius: 4px; }
-  .msg.user .msg-bubble { background: linear-gradient(135deg, #6366f1, #818cf8); color: white; border-bottom-right-radius: 4px; }
+
+  /* 消息内容区域 */
+  .msg-content { display: flex; flex-direction: column; max-width: calc(100% - 46px); }
+  .msg.user .msg-content { align-items: flex-end; }
+  .msg.ai .msg-content, .msg.human-agent .msg-content { align-items: flex-start; }
+
+  /* 气泡 */
+  .msg-bubble { padding: 12px 16px; border-radius: 18px; line-height: 1.6; word-break: break-word; font-size: 14px; position: relative; }
+
+  /* AI/客服气泡 - 左侧带尾巴 */
+  .msg.ai .msg-bubble { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; border-top-left-radius: 4px; }
+  .msg.ai .msg-bubble::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 12px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid rgba(255,255,255,0.12);
+  }
+
+  /* 人工客服气泡 - 左侧带尾巴 */
+  .msg.human-agent .msg-bubble { background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.2); color: #fed7aa; border-top-left-radius: 4px; }
+  .msg.human-agent .msg-bubble::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 12px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid rgba(249,115,22,0.15);
+  }
+
+  /* 用户气泡 - 右侧带尾巴 */
+  .msg.user .msg-bubble { background: linear-gradient(135deg, #6366f1, #818cf8); color: white; border-top-right-radius: 4px; }
+  .msg.user .msg-bubble::before {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 12px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 6px solid #818cf8;
+  }
+
   .msg-bubble a { color: #93c5fd; text-decoration: underline; word-break: break-all; }
-  .msg-time { font-size: 10px; opacity: 0.5; margin-top: 4px; }
+
+  /* 时间戳 */
+  .msg-time { font-size: 11px; color: rgba(255,255,255,0.35); margin-top: 6px; padding: 0 4px; }
 
   /* 系统提示 */
   .sys-msg { text-align: center; font-size: 12px; color: rgba(255,255,255,0.4); padding: 6px 0; }
   .sys-msg span { background: rgba(255,255,255,0.06); padding: 4px 14px; border-radius: 12px; }
 
   /* 打字指示器 */
-  .typing { display: flex; gap: 4px; padding: 14px 18px; background: rgba(255,255,255,0.1); border-radius: 18px; align-self: flex-start; width: fit-content; }
+  .typing { display: flex; gap: 4px; padding: 14px 18px; background: rgba(255,255,255,0.1); border-radius: 18px; align-self: flex-start; width: fit-content; margin-left: 46px; border-top-left-radius: 4px; }
   .typing span { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.4); animation: bounce 1.4s infinite; }
   .typing span:nth-child(2) { animation-delay: 0.2s; }
   .typing span:nth-child(3) { animation-delay: 0.4s; }
@@ -88,12 +140,15 @@
   .action-btn:hover { background: rgba(255,255,255,0.12); color: white; }
   .action-btn.active { background: rgba(249,115,22,0.2); border-color: rgba(249,115,22,0.3); color: #fdba74; }
 
-  /* 输入区域 */
-  .cw-input { padding: 14px 16px; display: flex; gap: 10px; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); }
-  .cw-input input { flex: 1; padding: 12px 18px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 24px; color: white; font-size: 14px; outline: none; transition: border-color 0.2s; }
-  .cw-input input::placeholder { color: rgba(255,255,255,0.35); }
-  .cw-input input:focus { border-color: #6366f1; }
-  .cw-send { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+  /* 输入区域 - IM风格 */
+  .cw-input-area { padding: 12px 16px 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .cw-input-wrapper { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(255,255,255,0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; }
+  .cw-input-btn { width: 36px; height: 36px; border-radius: 50%; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; color: rgba(255,255,255,0.5); flex-shrink: 0; }
+  .cw-input-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+  .cw-input-btn svg { width: 20px; height: 20px; }
+  .cw-input { flex: 1; padding: 8px 4px; background: transparent; border: none; color: white; font-size: 14px; outline: none; }
+  .cw-input::placeholder { color: rgba(255,255,255,0.35); }
+  .cw-send { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
   .cw-send:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(99,102,241,0.4); }
   .cw-send:disabled { background: rgba(255,255,255,0.15); cursor: not-allowed; transform: none; box-shadow: none; }
   .cw-send svg { width: 20px; height: 20px; fill: white; }
@@ -150,22 +205,28 @@
     <button class="quick-chip" onclick="sendQuick('产品咨询')">产品咨询</button>
     <button class="quick-chip" onclick="sendQuick('订单查询')">订单查询</button>
     <button class="quick-chip" onclick="sendQuick('物流查询')">物流查询</button>
-    <button class="quick-chip" onclick="sendQuick('售后服务')">售后服务</button>
   </div>
 
   <div class="cw-actions">
     <button class="action-btn" id="humanBtn" onclick="toggleHuman()">👤 转人工客服</button>
     <button class="action-btn" onclick="openSuggest()">💡 提建议</button>
-    <button class="action-btn" onclick="openDemand()">📋 提需求</button>
   </div>
 
-  <div class="cw-input">
-    <input type="text" id="messageInput" placeholder="输入问题，或发煤炉链接/搜商品名..." onkeypress="if(event.keyCode==13) sendMessage()" />
-    <button class="cw-send" id="sendBtn" onclick="sendMessage()">
-      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-    </button>
+  <div class="cw-input-area">
+    <div class="cw-input-wrapper">
+      <button class="cw-input-btn" title="表情">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      </button>
+      <button class="cw-input-btn" title="附件">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </button>
+      <input type="text" class="cw-input" id="messageInput" placeholder="输入问题，或发煤炉链接/搜商品名..." onkeypress="if(event.keyCode==13) sendMessage()" />
+      <button class="cw-send" id="sendBtn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
   </div>
-  <div id="emailHint" style="padding:4px 16px 10px;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;display:none;">请先绑定邮箱以开始对话</div>
+  <div id="emailHint" style="padding:0 16px 10px;font-size:11px;color:rgba(255,255,255,0.3);text-align:center;display:none;">请先绑定邮箱以开始对话</div>
 </div>
 
 <!-- 邮箱绑定弹窗 -->
@@ -225,7 +286,7 @@
     const linked = linkify(escaped);
     const avatarIcon = role === 'user' ? '😊' : (role === 'human-agent' ? '👩‍💼' : '🤖');
     const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-    div.innerHTML = `<div class="msg-avatar">${avatarIcon}</div><div class="msg-bubble">${linked}<div class="msg-time">${time}</div></div>`;
+    div.innerHTML = `<div class="msg-avatar">${avatarIcon}</div><div class="msg-content"><div class="msg-bubble">${linked}</div><div class="msg-time">${time}</div></div>`;
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
     if (save && userEmail) {

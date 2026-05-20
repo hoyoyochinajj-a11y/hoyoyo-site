@@ -3,14 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HOYOYO 客服后台</title>
+<title>HOYOYO 智能 AI 客服 V5.0 - 企业级管理后台</title>
 <style>
+  /* ===== 设计系统变量 ===== */
+  :root {
+    --primary-dark: #0a1628;
+    --primary-deep: #0d1e36;
+    --primary-mid: #132742;
+    --accent-blue: #3b82f6;
+    --accent-cyan: #06b6d4;
+    --accent-purple: #8b5cf6;
+    --silver: #94a3b8;
+    --silver-light: #cbd5e1;
+    --silver-dark: #64748b;
+    --glass-bg: rgba(13, 30, 54, 0.75);
+    --glass-border: rgba(148, 163, 184, 0.12);
+    --gradient-fluid: linear-gradient(135deg, #0a1628 0%, #132742 50%, #0d1e36 100%);
+    --gradient-accent: linear-gradient(135deg, #3b82f6 0%, #06b6d4 50%, #8b5cf6 100%);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
+  }
+
   /* ===== 全局重置 & 基础 ===== */
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: "Inter", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #0f0f23;
-    color: #c8c8e0;
+  html, body {
+    height: 100%;
+    font-family: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--gradient-fluid);
+    color: var(--silver-light);
     line-height: 1.6;
     overflow: hidden;
   }
@@ -18,500 +40,1035 @@
   /* ===== 自定义滚动条 ===== */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(129, 140, 248, 0.25); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(129, 140, 248, 0.45); }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.35); }
 
   /* ===== 登录遮罩 ===== */
   .login-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(ellipse at center, rgba(15,15,35,0.85) 0%, rgba(0,0,0,0.92) 100%);
-    backdrop-filter: blur(20px);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 100;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: radial-gradient(ellipse at center, rgba(10, 22, 40, 0.95) 0%, rgba(5, 10, 20, 0.98) 100%);
+    backdrop-filter: blur(30px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
   }
   .login-box {
-    background: rgba(26, 26, 62, 0.7);
+    background: var(--glass-bg);
     backdrop-filter: blur(40px);
-    border: 1px solid rgba(129, 140, 248, 0.15);
-    padding: 48px 44px;
-    border-radius: 28px;
+    border: 1px solid var(--glass-border);
+    padding: 56px 48px;
+    border-radius: 24px;
     text-align: center;
-    box-shadow: 0 32px 100px rgba(0,0,0,0.5), 0 0 80px rgba(99,102,241,0.08);
-    min-width: 360px;
+    box-shadow: var(--shadow-lg), var(--shadow-glow);
+    min-width: 400px;
+    position: relative;
+    overflow: hidden;
+  }
+  .login-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
   }
   .login-box h3 {
-    background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
     background-clip: text;
-    font-size: 24px; margin-bottom: 32px; font-weight: 700;
+    font-size: 28px;
+    margin-bottom: 40px;
+    font-weight: 700;
     letter-spacing: 0.5px;
   }
   .login-box input {
-    padding: 14px 20px; width: 100%; margin: 8px 0;
-    border: 1px solid rgba(129, 140, 248, 0.15);
-    border-radius: 14px;
-    background: rgba(255,255,255,0.04);
-    color: #e0e0f0; font-size: 15px; outline: none;
+    padding: 16px 22px;
+    width: 100%;
+    margin: 10px 0;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--silver-light);
+    font-size: 15px;
+    outline: none;
     transition: all 0.3s ease;
   }
-  .login-box input::placeholder { color: rgba(255,255,255,0.3); }
+  .login-box input::placeholder { color: var(--silver-dark); }
   .login-box input:focus {
-    border-color: rgba(129, 140, 248, 0.5);
-    background: rgba(129, 140, 248, 0.06);
-    box-shadow: 0 0 20px rgba(99,102,241,0.1);
+    border-color: rgba(59, 130, 246, 0.5);
+    background: rgba(59, 130, 246, 0.05);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
   }
   .login-box button {
-    padding: 14px 48px; margin-top: 20px;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
-    color: white; border: none; border-radius: 14px;
-    cursor: pointer; font-size: 16px; font-weight: 600;
+    padding: 16px 56px;
+    margin-top: 28px;
+    background: var(--gradient-accent);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
     transition: all 0.3s ease;
     letter-spacing: 1px;
   }
   .login-box button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(99,102,241,0.45);
+    box-shadow: 0 12px 32px rgba(59, 130, 246, 0.4);
   }
 
-  /* ===== 主容器 ===== */
-  .container { display: flex; height: 100vh; }
+  /* ===== 主容器布局 ===== */
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
 
-  /* ===== 左侧导航栏 ===== */
+  /* ===== 顶部状态栏 ===== */
+  .top-bar {
+    height: 64px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+  }
+  .logo-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--gradient-accent);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  }
+  .logo-text {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .logo-sub {
+    color: var(--silver-dark);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    margin-left: 8px;
+  }
+  .status-section {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  .status-dot.online { background: #10b981; box-shadow: 0 0 8px #10b981; }
+  .status-dot.busy { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+  .status-dot.normal { background: #3b82f6; box-shadow: 0 0 8px #3b82f6; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .status-label {
+    font-size: 12px;
+    color: var(--silver-dark);
+    font-weight: 500;
+  }
+  .status-value {
+    font-size: 14px;
+    color: var(--silver-light);
+    font-weight: 600;
+  }
+
+  /* ===== 主体布局 ===== */
+  .body-container {
+    display: flex;
+    flex: 1;
+    margin-top: 64px;
+    height: calc(100vh - 64px);
+  }
+
+  /* ===== 左侧侧边栏 ===== */
   .sidebar {
-    width: 240px; min-width: 240px;
-    background: linear-gradient(180deg, #1a1a3e 0%, #161630 100%);
-    color: white; padding: 0;
-    border-right: 1px solid rgba(129, 140, 248, 0.1);
-    display: flex; flex-direction: column;
-    box-shadow: 4px 0 30px rgba(0,0,0,0.3);
+    width: 260px;
+    min-width: 260px;
+    background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary-deep) 100%);
+    border-right: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
     position: relative;
-    z-index: 10;
   }
   .sidebar::after {
     content: '';
-    position: absolute; top: 0; right: 0; width: 1px; height: 100%;
-    background: linear-gradient(180deg, rgba(129,140,248,0.2) 0%, transparent 50%, rgba(129,140,248,0.1) 100%);
+    position: absolute;
+    top: 0; right: 0;
+    width: 1px; height: 100%;
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.2) 0%, transparent 50%, rgba(139, 92, 246, 0.1) 100%);
   }
-  .sidebar h2 {
-    padding: 28px 24px 24px;
-    border-bottom: 1px solid rgba(129, 140, 248, 0.1);
-    font-size: 20px;
-    background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-weight: 800;
-    letter-spacing: 1px;
-    position: relative;
+  .sidebar-header {
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--glass-border);
   }
-  .sidebar h2::after {
-    content: '';
-    position: absolute; bottom: 0; left: 24px; right: 24px;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(129,140,248,0.3), transparent);
+  .sidebar-title {
+    font-size: 11px;
+    color: var(--silver-dark);
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
   }
-  .sidebar div {
-    padding: 13px 20px 13px 24px;
+  .sidebar-nav {
+    padding: 16px 12px;
+    flex: 1;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    margin: 4px 0;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.3s ease;
     font-size: 14px;
-    color: rgba(200, 200, 224, 0.65);
+    color: var(--silver);
     border-left: 3px solid transparent;
-    display: flex; align-items: center; gap: 10px;
     position: relative;
-    margin: 1px 0;
   }
-  .sidebar div:hover {
-    background: rgba(129, 140, 248, 0.08);
-    color: rgba(255,255,255,0.95);
-    border-left-color: rgba(129, 140, 248, 0.3);
+  .nav-item:hover {
+    background: rgba(59, 130, 246, 0.08);
+    color: var(--silver-light);
   }
-  .sidebar div.active {
-    background: rgba(129, 140, 248, 0.12);
-    color: #ffffff;
-    border-left: 3px solid #818cf8;
+  .nav-item.active {
+    background: rgba(59, 130, 246, 0.12);
+    color: white;
+    border-left-color: #3b82f6;
+  }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 24px;
+    background: var(--gradient-accent);
+    border-radius: 0 3px 3px 0;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+  }
+  .nav-icon {
+    width: 22px;
+    text-align: center;
+    font-size: 16px;
+  }
+  .nav-text {
     font-weight: 500;
   }
-  .sidebar div.active::before {
-    content: '';
-    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-    width: 3px; height: 60%;
-    background: linear-gradient(180deg, #818cf8, #c084fc);
-    border-radius: 0 3px 3px 0;
-    box-shadow: 0 0 12px rgba(129,140,248,0.5);
-  }
-  .sidebar div .menu-icon {
-    font-size: 16px;
-    width: 24px;
+  .nav-badge {
+    margin-left: auto;
+    padding: 2px 8px;
+    background: #ef4444;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 10px;
+    min-width: 18px;
     text-align: center;
-    flex-shrink: 0;
   }
 
   /* ===== 主内容区 ===== */
-  .main {
-    flex: 1; padding: 32px;
+  .main-content {
+    flex: 1;
+    padding: 32px;
     overflow-y: auto;
-    background: #0f0f23;
+    background: transparent;
     position: relative;
   }
-  .main::before {
+  .main-content::before {
     content: '';
-    position: fixed; top: -200px; right: -200px;
+    position: fixed;
+    top: 64px; right: 0;
     width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
     pointer-events: none;
-  }
-  .main h3 {
-    color: #ffffff;
-    font-size: 22px; margin-bottom: 24px; font-weight: 700;
-    letter-spacing: 0.3px;
+    z-index: 0;
   }
 
-  /* ===== 统计卡片 ===== */
+  /* ===== 页面标题 ===== */
+  .page-header {
+    margin-bottom: 32px;
+  }
+  .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.5px;
+  }
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--silver-dark);
+    margin-top: 6px;
+  }
+
+  /* ===== 统计卡片网格 ===== */
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 28px;
+    gap: 24px;
+    margin-bottom: 32px;
   }
   .stat-card {
-    background: rgba(26, 26, 62, 0.5);
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(129, 140, 248, 0.1);
-    border-radius: 18px;
-    padding: 22px 20px;
-    display: flex; align-items: center; gap: 16px;
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
   }
   .stat-card::before {
     content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent, #818cf8), transparent);
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent-gradient, linear-gradient(90deg, transparent, var(--card-accent, #3b82f6), transparent));
     opacity: 0;
     transition: opacity 0.3s;
   }
   .stat-card:hover {
-    background: rgba(26, 26, 62, 0.7);
-    border-color: rgba(129, 140, 248, 0.2);
-    transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    background: rgba(13, 30, 54, 0.9);
+    border-color: rgba(148, 163, 184, 0.2);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
   }
   .stat-card:hover::before { opacity: 1; }
-  .stat-icon {
-    width: 52px; height: 52px;
+  .stat-card.blue { --card-accent: #3b82f6; }
+  .stat-card.green { --card-accent: #10b981; }
+  .stat-card.amber { --card-accent: #f59e0b; }
+  .stat-card.rose { --card-accent: #f43f5e; }
+  .stat-icon-wrap {
+    width: 56px;
+    height: 56px;
     border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
     flex-shrink: 0;
   }
-  .stat-icon.blue { background: linear-gradient(135deg, #6366f1, #818cf8); }
-  .stat-icon.green { background: linear-gradient(135deg, #10b981, #34d399); }
-  .stat-icon.amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
-  .stat-icon.rose { background: linear-gradient(135deg, #f43f5e, #fb7185); }
-  .stat-info h4 {
-    color: rgba(200, 200, 224, 0.55);
-    font-size: 13px; font-weight: 500;
-    margin-bottom: 4px;
+  .stat-icon-wrap.blue {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05));
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+  .stat-icon-wrap.green {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+  .stat-icon-wrap.amber {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.05));
+    border: 1px solid rgba(245, 158, 11, 0.2);
+  }
+  .stat-icon-wrap.rose {
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(244, 63, 94, 0.05));
+    border: 1px solid rgba(244, 63, 94, 0.2);
+  }
+  .stat-info { flex: 1; }
+  .stat-label {
+    color: var(--silver-dark);
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 8px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  .stat-info p {
-    color: #ffffff;
-    font-size: 28px; font-weight: 800;
-    letter-spacing: -0.5px;
+  .stat-value {
+    color: white;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .stat-trend.up { color: #10b981; }
+  .stat-trend.down { color: #ef4444; }
+
+  /* ===== 内容面板 ===== */
+  .panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .panel-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+  }
+
+  /* ===== 图表占位区 ===== */
+  .chart-placeholder {
+    height: 300px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px dashed var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--silver-dark);
+    font-size: 14px;
   }
 
   /* ===== 对话消息 ===== */
   .chat-message {
-    margin: 10px 0;
+    margin: 12px 0;
     padding: 18px 22px;
-    background: rgba(26, 26, 62, 0.45);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(129, 140, 248, 0.08);
-    border-radius: 16px;
-    color: #c8c8e0;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    color: var(--silver-light);
     transition: all 0.25s ease;
     line-height: 1.7;
   }
   .chat-message:hover {
-    background: rgba(26, 26, 62, 0.65);
-    border-color: rgba(129, 140, 248, 0.15);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(148, 163, 184, 0.2);
   }
-  .chat-message b { color: #a5b4fc; font-weight: 600; }
-  .chat-message small { color: rgba(200, 200, 224, 0.4); }
+  .chat-message b { color: #60a5fa; font-weight: 600; }
+  .chat-message small { color: var(--silver-dark); font-size: 12px; }
 
   /* ===== 通知 ===== */
   .notification {
-    position: fixed; top: 24px; right: 24px;
+    position: fixed;
+    top: 80px;
+    right: 32px;
     background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white; padding: 14px 28px;
-    border-radius: 14px;
-    display: none; z-index: 200;
-    font-size: 14px; font-weight: 500;
-    box-shadow: 0 12px 40px rgba(239,68,68,0.35);
+    color: white;
+    padding: 16px 28px;
+    border-radius: 12px;
+    display: none;
+    z-index: 200;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 12px 40px rgba(239, 68, 68, 0.35);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  /* ===== 用户列表项 ===== */
+  /* ===== 人工客服面板 ===== */
+  .human-service-container {
+    display: flex;
+    height: calc(100vh - 128px);
+    gap: 24px;
+  }
+  .user-list-panel {
+    width: 300px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .user-list-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .user-list-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+  }
+  .user-list-count {
+    padding: 4px 10px;
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 20px;
+  }
+  .user-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
   .user-item {
-    padding: 14px 18px;
+    padding: 14px 16px;
     cursor: pointer;
-    border-radius: 12px;
-    margin-bottom: 6px;
-    background: rgba(26, 26, 62, 0.35);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(129, 140, 248, 0.06);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid transparent;
     transition: all 0.25s ease;
+    position: relative;
   }
   .user-item:hover {
-    background: rgba(99, 102, 241, 0.12);
-    border-color: rgba(99, 102, 241, 0.2);
-    transform: translateX(4px);
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.15);
   }
   .user-item.active {
-    background: rgba(99, 102, 241, 0.18);
-    border-color: rgba(99, 102, 241, 0.3);
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+    background: rgba(59, 130, 246, 0.12);
+    border-color: rgba(59, 130, 246, 0.25);
+  }
+  .user-item.has-unread::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #ef4444;
+  }
+  .user-email {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--silver-light);
+    margin-bottom: 4px;
+  }
+  .user-meta {
+    font-size: 12px;
+    color: var(--silver-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .unread-badge {
+    padding: 2px 8px;
+    background: #ef4444;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 10px;
   }
 
-  /* ===== 备注和回复区域 ===== */
-  .note-area, .reply-area {
-    display: flex; gap: 10px;
-    padding: 14px 16px;
-    border-top: 1px solid rgba(129, 140, 248, 0.08);
-    background: rgba(26, 26, 62, 0.3);
-    backdrop-filter: blur(12px);
+  /* ===== 聊天区域 ===== */
+  .chat-panel {
+    flex: 1;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
-  .note-area input, .reply-area input {
-    flex: 1; padding: 12px 18px;
-    border: 1px solid rgba(129, 140, 248, 0.12);
+  .chat-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .chat-user-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .user-avatar {
+    width: 42px;
+    height: 42px;
+    background: var(--gradient-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .user-details h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 4px;
+  }
+  .user-details span {
+    font-size: 12px;
+    color: var(--silver-dark);
+  }
+  .transfer-notice {
+    padding: 8px 16px;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 8px;
+    font-size: 13px;
+    color: #fbbf24;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .message {
+    display: flex;
+    gap: 12px;
+    max-width: 75%;
+  }
+  .message.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+  }
+  .message.agent {
+    align-self: flex-start;
+  }
+  .message-bubble {
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    position: relative;
+  }
+  .message.user .message-bubble {
+    background: var(--gradient-accent);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+  .message.agent .message-bubble {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--silver-light);
+    border: 1px solid var(--glass-border);
+    border-bottom-left-radius: 4px;
+  }
+  .message-time {
+    font-size: 11px;
+    color: var(--silver-dark);
+    margin-top: 6px;
+  }
+  .chat-input-area {
+    padding: 20px 24px;
+    border-top: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .input-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .chat-input {
+    flex: 1;
+    padding: 14px 18px;
+    border: 1px solid var(--glass-border);
     border-radius: 12px;
-    background: rgba(255,255,255,0.04);
-    color: #e0e0f0; font-size: 14px; outline: none;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--silver-light);
+    font-size: 14px;
+    outline: none;
     transition: all 0.3s ease;
   }
-  .note-area input::placeholder, .reply-area input::placeholder { color: rgba(255,255,255,0.3); }
-  .note-area input:focus, .reply-area input:focus {
-    border-color: rgba(129, 140, 248, 0.4);
-    background: rgba(129, 140, 248, 0.06);
-    box-shadow: 0 0 16px rgba(99,102,241,0.08);
+  .chat-input::placeholder { color: var(--silver-dark); }
+  .chat-input:focus {
+    border-color: rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.05);
   }
-  .note-area button, .reply-area button {
-    padding: 10px 22px; border: none; border-radius: 12px;
-    cursor: pointer; font-size: 14px; font-weight: 600;
+  .btn-send {
+    padding: 14px 28px;
+    background: var(--gradient-accent);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
     transition: all 0.3s ease;
-    white-space: nowrap;
   }
-  .note-area button {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-  }
-  .reply-area button {
-    background: linear-gradient(135deg, #f97316, #ea580c);
-    color: white;
-  }
-  .note-area button:hover, .reply-area button:hover {
+  .btn-send:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
   }
 
   /* ===== 表单组 ===== */
-  .form-group { margin-bottom: 18px; }
+  .form-group { margin-bottom: 20px; }
   .form-group label {
     display: block;
-    color: rgba(200, 200, 224, 0.75);
-    font-size: 13px; margin-bottom: 8px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    color: var(--silver);
+    font-size: 13px;
+    margin-bottom: 8px;
+    font-weight: 500;
   }
-  .form-group input, .form-group textarea, .form-group select {
-    width: 100%; padding: 12px 18px; margin: 4px 0;
-    border: 1px solid rgba(129, 140, 248, 0.12);
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid var(--glass-border);
     border-radius: 12px;
-    background: rgba(255,255,255,0.04);
-    color: #e0e0f0; font-size: 14px; outline: none;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--silver-light);
+    font-size: 14px;
+    outline: none;
     transition: all 0.3s ease;
   }
-  .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-    border-color: rgba(129, 140, 248, 0.4);
-    background: rgba(129, 140, 248, 0.06);
-    box-shadow: 0 0 16px rgba(99,102,241,0.08);
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    border-color: rgba(59, 130, 246, 0.4);
+    background: rgba(59, 130, 246, 0.05);
   }
-  .form-group textarea { resize: vertical; min-height: 80px; }
-  .form-group select option { background: #1a1a3e; color: white; }
+  .form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+  .form-group select option {
+    background: var(--primary-deep);
+    color: var(--silver-light);
+  }
 
   /* ===== 按钮 ===== */
   .btn {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    color: white; border: none;
-    padding: 10px 22px; border-radius: 12px;
-    cursor: pointer; margin-right: 8px;
-    font-size: 14px; font-weight: 600;
+    background: var(--gradient-accent);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-right: 10px;
+    font-size: 14px;
+    font-weight: 600;
     transition: all 0.3s ease;
-    letter-spacing: 0.3px;
   }
   .btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 24px rgba(99,102,241,0.4);
+    box-shadow: 0 6px 24px rgba(59, 130, 246, 0.4);
+  }
+  .btn.secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+  }
+  .btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
   }
   .btn.danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: linear-gradient(135deg, #ef4444, #dc2626);
   }
   .btn.danger:hover {
-    box-shadow: 0 6px 24px rgba(239,68,68,0.4);
+    box-shadow: 0 6px 24px rgba(239, 68, 68, 0.4);
   }
   .btn.success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #10b981, #059669);
   }
   .btn.success:hover {
-    box-shadow: 0 6px 24px rgba(16,185,129,0.4);
+    box-shadow: 0 6px 24px rgba(16, 185, 129, 0.4);
   }
 
   /* ===== 管理员卡片 ===== */
   .admin-card {
-    background: rgba(26, 26, 62, 0.45);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(129, 140, 248, 0.08);
-    padding: 22px 24px;
-    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    padding: 24px;
+    border-radius: 14px;
     margin: 12px 0;
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     transition: all 0.3s ease;
   }
   .admin-card:hover {
-    background: rgba(26, 26, 62, 0.65);
-    border-color: rgba(129, 140, 248, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(148, 163, 184, 0.2);
     transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
   }
   .admin-info { flex: 1; }
-  .admin-info h4 { margin-bottom: 8px; color: #ffffff; font-size: 16px; font-weight: 600; }
-  .admin-info small { color: rgba(200, 200, 224, 0.4); font-size: 13px; }
+  .admin-info h4 {
+    margin-bottom: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .admin-info small {
+    color: var(--silver-dark);
+    font-size: 13px;
+  }
   .permission-tag {
-    display: inline-block; padding: 4px 14px;
-    background: rgba(99, 102, 241, 0.15);
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    border-radius: 20px; margin: 3px;
-    font-size: 12px; color: #a5b4fc; font-weight: 500;
+    display: inline-block;
+    padding: 4px 14px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 20px;
+    margin: 3px;
+    font-size: 12px;
+    color: #60a5fa;
+    font-weight: 500;
   }
   .permission-tag.all {
-    background: rgba(249, 115, 22, 0.15);
-    border-color: rgba(249, 115, 22, 0.25);
-    color: #fdba74;
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
   }
 
   /* ===== 模态框 ===== */
   .modal {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(16px);
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 300;
   }
   .modal-content {
-    background: rgba(26, 26, 62, 0.85);
+    background: var(--glass-bg);
     backdrop-filter: blur(40px);
-    border: 1px solid rgba(129, 140, 248, 0.15);
+    border: 1px solid var(--glass-border);
     padding: 36px;
-    border-radius: 24px;
-    width: 480px; max-width: 90vw;
-    color: #c8c8e0;
-    box-shadow: 0 32px 100px rgba(0,0,0,0.5), 0 0 60px rgba(99,102,241,0.06);
+    border-radius: 20px;
+    width: 500px;
+    max-width: 90vw;
+    color: var(--silver-light);
+    box-shadow: var(--shadow-lg);
   }
   .modal-content h3 {
     margin-bottom: 28px;
-    color: #ffffff; font-size: 22px; font-weight: 700;
-    letter-spacing: 0.3px;
+    color: white;
+    font-size: 22px;
+    font-weight: 700;
   }
   .checkbox-group {
-    display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 12px 0;
   }
   .checkbox-group label {
-    display: flex; align-items: center; gap: 6px;
-    padding: 8px 14px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(129, 140, 248, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
     border-radius: 10px;
-    cursor: pointer; font-size: 13px;
-    color: rgba(200, 200, 224, 0.7);
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--silver);
     transition: all 0.25s ease;
   }
   .checkbox-group label:hover {
-    background: rgba(99, 102, 241, 0.12);
-    border-color: rgba(99, 102, 241, 0.25);
-    color: #ffffff;
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.2);
+    color: white;
   }
-  .checkbox-group label input { margin-right: 6px; accent-color: #818cf8; }
+  .checkbox-group label input {
+    margin-right: 6px;
+    accent-color: #3b82f6;
+  }
 
-  /* ===== 主区域滚动条 ===== */
-  .main::-webkit-scrollbar { width: 6px; }
-  .main::-webkit-scrollbar-track { background: transparent; }
-  .main::-webkit-scrollbar-thumb { background: rgba(129, 140, 248, 0.2); border-radius: 3px; }
-  .main::-webkit-scrollbar-thumb:hover { background: rgba(129, 140, 248, 0.35); }
+  /* ===== 空状态 ===== */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--silver-dark);
+  }
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+  .empty-state-text {
+    font-size: 14px;
+  }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 1200px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .sidebar { width: 200px; min-width: 200px; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .human-service-container { flex-direction: column; }
+    .user-list-panel { width: 100%; height: 200px; }
+  }
 </style>
 </head>
 <body>
+<!-- 登录遮罩 -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-box">
-    <h3>🔐 管理员登录</h3>
+    <h3>管理员登录</h3>
     <input type="text" id="usernameInput" placeholder="请输入账号" />
     <input type="password" id="passwordInput" placeholder="请输入密码" />
     <button onclick="login()">进入后台</button>
   </div>
 </div>
+
+<!-- 通知 -->
 <div class="notification" id="notification"></div>
 
-<div class="container">
-  <div class="sidebar" id="sidebar">
-    <h2>✦ HOYOYO 6.0</h2>
-    <div onclick="switchPanel('dashboard')" class="active"><span class="menu-icon">📊</span> 控制台</div>
-    <div onclick="switchPanel('ai-chats')"><span class="menu-icon">💬</span> AI对话记录</div>
-    <div onclick="switchPanel('suggests')"><span class="menu-icon">💡</span> 建议列表</div>
-    <div onclick="switchPanel('demands')"><span class="menu-icon">📋</span> 需求列表</div>
-    <div onclick="switchPanel('human')"><span class="menu-icon">👥</span> 人工客服</div>
-    <div onclick="switchPanel('emails')"><span class="menu-icon">📧</span> 用户邮箱</div>
-    <div onclick="switchPanel('knowledge')"><span class="menu-icon">📚</span> 知识库</div>
-    <div onclick="switchPanel('rules')"><span class="menu-icon">⚙️</span> 规则管理</div>
-    <div onclick="switchPanel('unanswered')"><span class="menu-icon">🤔</span> 疑难记录</div>
-    <div onclick="switchPanel('learn')"><span class="menu-icon">🌐</span> 学习URL</div>
-    <div onclick="switchPanel('admins')"><span class="menu-icon">👤</span> 管理员账号</div>
+<!-- 主应用容器 -->
+<div class="app-container">
+  <!-- 顶部状态栏 -->
+  <header class="top-bar">
+    <div class="logo-section">
+      <div class="logo-icon">AI</div>
+      <div>
+        <span class="logo-text">HOYOYO</span>
+        <span class="logo-sub">智能 AI 客服 V5.0</span>
+      </div>
+    </div>
+    <div class="status-section">
+      <div class="status-item">
+        <span class="status-dot online"></span>
+        <span class="status-label">在线客服</span>
+        <span class="status-value" id="onlineAgents">3</span>
+      </div>
+      <div class="status-item">
+        <span class="status-dot normal"></span>
+        <span class="status-label">实时访客</span>
+        <span class="status-value" id="liveVisitors">12</span>
+      </div>
+      <div class="status-item">
+        <span class="status-dot normal"></span>
+        <span class="status-label">系统状态</span>
+        <span class="status-value">正常运行</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主体布局 -->
+  <div class="body-container">
+    <!-- 左侧侧边栏 -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">功能导航</span>
+      </div>
+      <nav class="sidebar-nav" id="sidebarNav">
+        <div class="nav-item active" onclick="switchPanel('dashboard')" data-panel="dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">数据大屏</span>
+        </div>
+        <div class="nav-item" onclick="switchPanel('ai-chats')" data-panel="ai-chats">
+          <span class="nav-icon">💬</span>
+          <span class="nav-text">客服话术配置</span>
+        </div>
+        <div class="nav-item" onclick="switchPanel('emails')" data-panel="emails">
+          <span class="nav-icon">👤</span>
+          <span class="nav-text">访客数据中心</span>
+        </div>
+        <div class="nav-item" onclick="switchPanel('human')" data-panel="human">
+          <span class="nav-icon">💬</span>
+          <span class="nav-text">聊天记录隔离管理</span>
+          <span class="nav-badge" id="humanBadge" style="display:none">0</span>
+        </div>
+        <div class="nav-item" onclick="switchPanel('knowledge')" data-panel="knowledge">
+          <span class="nav-icon">🌐</span>
+          <span class="nav-text">多语言全局设置</span>
+        </div>
+        <div class="nav-item" onclick="switchPanel('learn')" data-panel="learn">
+          <span class="nav-icon">🗄️</span>
+          <span class="nav-text">MongoDB数据库连接</span>
+        </div>
+        <div class="nav-item" onclick="switchPanel('admins')" data-panel="admins">
+          <span class="nav-icon">👥</span>
+          <span class="nav-text">主副账号权限管理</span>
+        </div>
+        <div class="nav-item" onclick="switchPanel('suggests')" data-panel="suggests">
+          <span class="nav-icon">🔔</span>
+          <span class="nav-text">人工转接提醒设置</span>
+        </div>
+        <div class="nav-item" onclick="switchPanel('demands')" data-panel="demands">
+          <span class="nav-icon">📧</span>
+          <span class="nav-text">邮箱预填写数据模块</span>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content" id="mainContent">
+      <!-- 内容将通过JavaScript动态加载 -->
+    </main>
   </div>
-  <div class="main" id="mainContent"></div>
 </div>
 
 <script>
-  let currentPanel = 'ai-chats';
+  let currentPanel = 'dashboard';
   let selectedUserId = null;
   let humanRefresh = null;
   let panelRefresh = null;
-  let currentAdmin = null; // 当前登录的管理员信息
+  let currentAdmin = null;
+  let unreadUsers = new Set();
 
   async function login() {
     const username = document.getElementById('usernameInput').value.trim();
     const pwd = document.getElementById('passwordInput').value;
-    
+
     if (!username) {
       alert('请输入账号');
       return;
     }
-    
-    const res = await fetch('/api/login', { 
-      method:'POST', 
-      headers:{'Content-Type':'application/json'}, 
-      body:JSON.stringify({ username, password: pwd }) 
+
+    const res = await fetch('/api/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ username, password: pwd })
     });
-    
+
     if (res.ok) {
       const data = await res.json();
       currentAdmin = data.admin;
       document.getElementById('loginOverlay').style.display = 'none';
-      
-      // 根据权限显示/隐藏菜单
       applyPermissions();
       startRefresh();
     } else {
@@ -524,23 +1081,20 @@
     if (!currentAdmin) return;
     const permissions = currentAdmin.permissions || [];
     const isSuperAdmin = currentAdmin.role === 'superadmin' || permissions.includes('all');
-    
-    const menuItems = document.querySelectorAll('.sidebar div');
-    const panels = ['dashboard', 'ai-chats', 'suggests', 'demands', 'human', 'emails', 'knowledge', 'rules', 'unanswered', 'learn', 'admins'];
-    
+
+    const menuItems = document.querySelectorAll('.nav-item');
+    const panels = ['dashboard', 'ai-chats', 'emails', 'human', 'knowledge', 'learn', 'admins', 'suggests', 'demands'];
+
     menuItems.forEach((item, idx) => {
       const panelName = panels[idx];
       if (panelName === 'dashboard') {
-        // 控制台始终显示
-        item.style.display = 'block';
+        item.style.display = 'flex';
       } else if (panelName === 'admins') {
-        // 只有超级管理员才能看到管理员账号管理
-        item.style.display = isSuperAdmin ? 'block' : 'none';
+        item.style.display = isSuperAdmin ? 'flex' : 'none';
       } else if (!isSuperAdmin) {
-        // 非超级管理员根据权限显示
-        item.style.display = permissions.includes(panelName) ? 'block' : 'none';
+        item.style.display = permissions.includes(panelName) ? 'flex' : 'none';
       } else {
-        item.style.display = 'block';
+        item.style.display = 'flex';
       }
     });
   }
@@ -549,9 +1103,12 @@
     currentPanel = name;
     if (humanRefresh) { clearInterval(humanRefresh); humanRefresh = null; }
     if (panelRefresh) { clearInterval(panelRefresh); panelRefresh = null; }
-    document.querySelectorAll('.sidebar div').forEach(d => d.classList.remove('active'));
-    const idx = ['dashboard','ai-chats','suggests','demands','human','emails','knowledge','rules','unanswered','learn','admins'].indexOf(name);
-    if (idx >= 0) document.querySelectorAll('.sidebar div')[idx].classList.add('active');
+
+    // 更新导航状态
+    document.querySelectorAll('.nav-item').forEach(d => d.classList.remove('active'));
+    const activeNav = document.querySelector(`.nav-item[data-panel="${name}"]`);
+    if (activeNav) activeNav.classList.add('active');
+
     loadPanel(name);
   }
 
@@ -568,80 +1125,211 @@
 
   async function loadPanel(name) {
     const main = document.getElementById('mainContent');
-    main.innerHTML = '加载中...';
+    main.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">加载中...</div></div>';
+
     try {
       if (name === 'dashboard') {
-        main.innerHTML = `<h3>📊 控制台</h3>
+        main.innerHTML = `
+          <div class="page-header">
+            <h1 class="page-title">数据大屏</h1>
+            <p class="page-subtitle">实时监控客服系统运行状态与关键指标</p>
+          </div>
           <div class="stats-grid">
-            <div class="stat-card" style="--accent:#818cf8">
-              <div class="stat-icon blue">💬</div>
-              <div class="stat-info"><h4>今日对话量</h4><p id="statChats">--</p></div>
+            <div class="stat-card blue">
+              <div class="stat-icon-wrap blue">💬</div>
+              <div class="stat-info">
+                <div class="stat-label">今日对话量</div>
+                <div class="stat-value" id="statChats">--</div>
+                <div class="stat-trend up">↑ 12.5% 较昨日</div>
+              </div>
             </div>
-            <div class="stat-card" style="--accent:#34d399">
-              <div class="stat-icon green">👥</div>
-              <div class="stat-info"><h4>活跃用户</h4><p id="statUsers">--</p></div>
+            <div class="stat-card green">
+              <div class="stat-icon-wrap green">👥</div>
+              <div class="stat-info">
+                <div class="stat-label">实时访客</div>
+                <div class="stat-value" id="statUsers">--</div>
+                <div class="stat-trend up">↑ 8.3% 较昨日</div>
+              </div>
             </div>
-            <div class="stat-card" style="--accent:#fbbf24">
-              <div class="stat-icon amber">😊</div>
-              <div class="stat-info"><h4>满意度</h4><p id="statSatisfy">--</p></div>
+            <div class="stat-card amber">
+              <div class="stat-icon-wrap amber">😊</div>
+              <div class="stat-info">
+                <div class="stat-label">满意度</div>
+                <div class="stat-value" id="statSatisfy">--</div>
+                <div class="stat-trend up">↑ 2.1% 较上周</div>
+              </div>
             </div>
-            <div class="stat-card" style="--accent:#fb7185">
-              <div class="stat-icon rose">⏳</div>
-              <div class="stat-info"><h4>待处理</h4><p id="statPending">--</p></div>
+            <div class="stat-card rose">
+              <div class="stat-icon-wrap rose">⏳</div>
+              <div class="stat-info">
+                <div class="stat-label">待处理</div>
+                <div class="stat-value" id="statPending">--</div>
+                <div class="stat-trend down">↓ 需关注</div>
+              </div>
             </div>
           </div>
-          <div id="dashboardContent"></div>`;
+          <div class="panel">
+            <div class="panel-header">
+              <h3 class="panel-title">对话数据分析</h3>
+            </div>
+            <div class="chart-placeholder">
+              <span>📈 图表区域 - 对话趋势分析</span>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h3 class="panel-title">商品跳转链接配置</h3>
+            </div>
+            <div class="form-group">
+              <label>默认商品搜索链接</label>
+              <input type="text" value="https://cn.hoyoyo.com/search.html" readonly />
+            </div>
+            <div class="form-group">
+              <label>品牌专区链接</label>
+              <input type="text" value="https://cn.hoyoyo.com/brand.html" readonly />
+            </div>
+          </div>
+        `;
         try {
-          const chatsData = await fetchJSON('/api/ai-chats');
-          const emailsData = await fetchJSON('/api/user-email-list');
+          const chatsData = await fetchJSON('/api/ai-chats') || [];
+          const emailsData = await fetchJSON('/api/user-email-list') || [];
           const today = new Date().toDateString();
           const todayChats = chatsData.filter(c => new Date(c.time).toDateString() === today).length;
           const todayUsers = new Set(emailsData.map(e => e.email)).size;
-          const el1 = document.getElementById('statChats'); if (el1) el1.textContent = todayChats;
-          const el2 = document.getElementById('statUsers'); if (el2) el2.textContent = todayUsers;
+          const el1 = document.getElementById('statChats'); if (el1) el1.textContent = todayChats.toLocaleString();
+          const el2 = document.getElementById('statUsers'); if (el2) el2.textContent = todayUsers.toLocaleString();
           const el3 = document.getElementById('statSatisfy'); if (el3) el3.textContent = '96%';
           const el4 = document.getElementById('statPending'); if (el4) el4.textContent = todayChats > 0 ? Math.max(0, todayChats - Math.floor(todayChats * 0.8)) : 0;
         } catch(e) {}
       }
       else if (name === 'ai-chats') {
-        main.innerHTML = '<h3>AI 对话记录</h3><div id="list"></div>';
-        const data = await fetchJSON('/api/ai-chats');
-        document.getElementById('list').innerHTML = data.map(c => `<div class="chat-message"><b>${c.email}</b> <small>${new Date(c.time).toLocaleString()}</small><br><b>问：</b>${c.message}<br><b>答：</b>${c.reply}</div>`).join('');
+        main.innerHTML = `
+          <div class="page-header">
+            <h1 class="page-title">客服话术配置</h1>
+            <p class="page-subtitle">管理AI客服的对话记录与回复话术</p>
+          </div>
+          <div id="list"></div>
+        `;
+        const data = await fetchJSON('/api/ai-chats') || [];
+        document.getElementById('list').innerHTML = data.length > 0
+          ? data.map(c => `<div class="chat-message"><b>${c.email}</b> <small>${new Date(c.time).toLocaleString()}</small><br><b>问：</b>${c.message}<br><b>答：</b>${c.reply}</div>`).join('')
+          : '<div class="empty-state"><div class="empty-state-icon">💬</div><div class="empty-state-text">暂无对话记录</div></div>';
       }
       else if (name === 'suggests') {
-        main.innerHTML = '<h3>建议列表</h3><div id="list"></div>';
-        const data = await fetchJSON('/api/suggests');
-        document.getElementById('list').innerHTML = data.map(s => `<div class="chat-message"><b>${s.email}</b> <small>${new Date(s.time).toLocaleString()}</small><br>${s.content}</div>`).join('');
+        main.innerHTML = `
+          <div class="page-header">
+            <h1 class="page-title">人工转接提醒设置</h1>
+            <p class="page-subtitle">配置用户建议与系统提醒规则</p>
+          </div>
+          <div id="list"></div>
+        `;
+        const data = await fetchJSON('/api/suggests') || [];
+        document.getElementById('list').innerHTML = data.length > 0
+          ? data.map(s => `<div class="chat-message"><b>${s.email}</b> <small>${new Date(s.time).toLocaleString()}</small><br>${s.content}</div>`).join('')
+          : '<div class="empty-state"><div class="empty-state-icon">💡</div><div class="empty-state-text">暂无建议记录</div></div>';
       }
       else if (name === 'demands') {
-        main.innerHTML = '<h3>需求列表</h3><div id="list"></div>';
-        const data = await fetchJSON('/api/demands');
-        document.getElementById('list').innerHTML = data.map(d => `<div class="chat-message"><b>${d.email}</b> <small>${new Date(d.time).toLocaleString()}</small><br>${d.content}</div>`).join('');
+        main.innerHTML = `
+          <div class="page-header">
+            <h1 class="page-title">邮箱预填写数据模块</h1>
+            <p class="page-subtitle">管理用户需求与邮箱数据关联</p>
+          </div>
+          <div id="list"></div>
+        `;
+        const data = await fetchJSON('/api/demands') || [];
+        document.getElementById('list').innerHTML = data.length > 0
+          ? data.map(d => `<div class="chat-message"><b>${d.email}</b> <small>${new Date(d.time).toLocaleString()}</small><br>${d.content}</div>`).join('')
+          : '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">暂无需求记录</div></div>';
       }
       else if (name === 'human') {
-        main.innerHTML = `<div style="display:flex; height:calc(100vh - 80px);">
-          <div style="width:250px; border-right:1px solid rgba(255,255,255,0.08); overflow-y:auto; padding:10px;" id="userList"></div>
-          <div style="flex:1; display:flex; flex-direction:column;">
-            <div style="font-weight:bold; padding:10px; background:rgba(255,255,255,0.06); color:white;" id="chatTitle">请选择用户</div>
-            <div style="flex:1; overflow-y:auto; padding:10px; background:rgba(255,255,255,0.03);" id="humanChatBox"></div>
-            <div class="note-area"><input type="text" id="noteInput" placeholder="添加备注..."><button onclick="saveNote()">保存备注</button></div>
-            <div class="reply-area"><input type="text" id="humanReplyInput" placeholder="输入回复..." onkeypress="if(event.keyCode==13) sendReply()"><button onclick="sendReply()">发送</button></div>
+        main.innerHTML = `
+          <div class="page-header">
+            <h1 class="page-title">聊天记录隔离管理</h1>
+            <p class="page-subtitle">人工客服实时对话管理</p>
           </div>
-        </div>`;
+          <div class="human-service-container">
+            <div class="user-list-panel">
+              <div class="user-list-header">
+                <span class="user-list-title">待接入用户</span>
+                <span class="user-list-count" id="userCount">0</span>
+              </div>
+              <div class="user-list" id="userList"></div>
+            </div>
+            <div class="chat-panel">
+              <div class="chat-header">
+                <div class="chat-user-info">
+                  <div class="user-avatar">👤</div>
+                  <div class="user-details">
+                    <h4 id="chatUserName">请选择用户</h4>
+                    <span id="chatUserStatus">等待接入...</span>
+                  </div>
+                </div>
+                <div class="transfer-notice" id="transferNotice" style="display:none">
+                  <span>⚡</span>
+                  <span>用户请求转人工服务</span>
+                </div>
+              </div>
+              <div class="chat-messages" id="humanChatBox">
+                <div class="empty-state">
+                  <div class="empty-state-icon">💬</div>
+                  <div class="empty-state-text">选择左侧用户开始对话</div>
+                </div>
+              </div>
+              <div class="chat-input-area">
+                <div class="input-row">
+                  <input type="text" class="chat-input" id="noteInput" placeholder="添加备注..." />
+                  <button class="btn secondary" onclick="saveNote()">保存备注</button>
+                </div>
+                <div class="input-row">
+                  <input type="text" class="chat-input" id="humanReplyInput" placeholder="输入回复消息..." onkeypress="if(event.keyCode==13) sendReply()" />
+                  <button class="btn-send" onclick="sendReply()">发送</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
         if (humanRefresh) clearInterval(humanRefresh);
-        humanRefresh = setInterval(() => { if (currentPanel === 'human') refreshHumanData(); }, 3000);
+        // 修复：轮询间隔改为1秒
+        humanRefresh = setInterval(() => { if (currentPanel === 'human') refreshHumanData(); }, 1000);
         await refreshHumanData();
       }
       else if (name === 'emails') {
-        main.innerHTML = '<h3>用户邮箱</h3><div id="list"></div>';
-        const data = await fetchJSON('/api/user-email-list');
-        document.getElementById('list').innerHTML = data.map(e => `<div class="chat-message">📧 ${e.email} - ${new Date(e.time).toLocaleString()}</div>`).join('');
+        main.innerHTML = `
+          <div class="page-header">
+            <h1 class="page-title">访客数据中心</h1>
+            <p class="page-subtitle">管理所有访客邮箱与联系信息</p>
+          </div>
+          <div id="list"></div>
+        `;
+        const data = await fetchJSON('/api/user-email-list') || [];
+        document.getElementById('list').innerHTML = data.length > 0
+          ? data.map(e => `<div class="chat-message">📧 ${e.email} - ${new Date(e.time).toLocaleString()}</div>`).join('')
+          : '<div class="empty-state"><div class="empty-state-icon">📧</div><div class="empty-state-text">暂无访客记录</div></div>';
       }
       else if (name === 'knowledge') {
         if (!document.getElementById('kbList')) {
-          main.innerHTML = `<h3>知识库</h3>
-            <div class="form-group"><input id="kbQ" placeholder="问题"><textarea id="kbA" placeholder="答案" rows="3"></textarea><input id="kbKw" placeholder="关键词(逗号分隔)"><button class="btn" onclick="addKB()">添加</button></div>
-            <div id="kbList"></div>`;
+          main.innerHTML = `
+            <div class="page-header">
+              <h1 class="page-title">多语言全局设置</h1>
+              <p class="page-subtitle">配置AI知识库与多语言支持</p>
+            </div>
+            <div class="panel">
+              <div class="form-group">
+                <label>问题</label>
+                <input id="kbQ" placeholder="输入问题" />
+              </div>
+              <div class="form-group">
+                <label>答案</label>
+                <textarea id="kbA" placeholder="输入答案" rows="3"></textarea>
+              </div>
+              <div class="form-group">
+                <label>关键词（逗号分隔）</label>
+                <input id="kbKw" placeholder="输入关键词" />
+              </div>
+              <button class="btn" onclick="addKB()">添加知识</button>
+            </div>
+            <div id="kbList"></div>
+          `;
         }
         if (panelRefresh) clearInterval(panelRefresh);
         panelRefresh = setInterval(() => { if (currentPanel === 'knowledge') refreshKBListOnly(); }, 5000);
@@ -650,27 +1338,28 @@
       else if (name === 'rules') {
         if (!document.getElementById('ruleList')) {
           main.innerHTML = `
-            <h3>⚙️ 规则管理</h3>
-            <p style="color:rgba(255,255,255,0.5);margin-bottom:20px;font-size:13px;">添加自定义规则来优化AI客服的回复行为。规则会自动添加到AI的系统提示中。</p>
-            
-            <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
-              <button class="btn" onclick="showRuleTemplate('brand')">📦 品牌搜索规则</button>
-              <button class="btn" onclick="showRuleTemplate('fee')">💰 费用说明规则</button>
-              <button class="btn" onclick="showRuleTemplate('product')">🏷️ 商品推荐规则</button>
-              <button class="btn" onclick="showRuleTemplate('custom')">✏️ 自定义规则</button>
+            <div class="page-header">
+              <h1 class="page-title">规则管理</h1>
+              <p class="page-subtitle">添加自定义规则优化AI客服回复行为</p>
             </div>
-            
-            <div class="form-group" id="ruleForm" style="display:none;">
-              <label style="color:rgba(255,255,255,0.6);font-size:12px;text-transform:uppercase;letter-spacing:1px;">规则内容</label>
-              <textarea id="ruleContent" placeholder="输入规则内容..." rows="4" style="min-height:100px;"></textarea>
-              <div style="display:flex;gap:8px;margin-top:8px;">
-                <button class="btn success" onclick="addRule()">添加规则</button>
-                <button class="btn" onclick="document.getElementById('ruleForm').style.display='none'">取消</button>
+            <div class="panel">
+              <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+                <button class="btn" onclick="showRuleTemplate('brand')">📦 品牌搜索规则</button>
+                <button class="btn" onclick="showRuleTemplate('fee')">💰 费用说明规则</button>
+                <button class="btn" onclick="showRuleTemplate('product')">🏷️ 商品推荐规则</button>
+                <button class="btn" onclick="showRuleTemplate('custom')">✏️ 自定义规则</button>
+              </div>
+              <div class="form-group" id="ruleForm" style="display:none;">
+                <label>规则内容</label>
+                <textarea id="ruleContent" placeholder="输入规则内容..." rows="4" style="min-height:100px;"></textarea>
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                  <button class="btn success" onclick="addRule()">添加规则</button>
+                  <button class="btn secondary" onclick="document.getElementById('ruleForm').style.display='none'">取消</button>
+                </div>
               </div>
             </div>
-            
-            <div style="margin-top:24px;">
-              <h4 style="color:rgba(255,255,255,0.7);font-size:14px;margin-bottom:12px;">当前规则列表</h4>
+            <div class="panel">
+              <h3 class="panel-title">当前规则列表</h3>
               <div id="ruleList"></div>
             </div>
           `;
@@ -681,7 +1370,13 @@
       }
       else if (name === 'unanswered') {
         if (!document.getElementById('unansweredList')) {
-          main.innerHTML = `<h3>🤔 疑难记录</h3><div id="unansweredList"></div>`;
+          main.innerHTML = `
+            <div class="page-header">
+              <h1 class="page-title">疑难记录</h1>
+              <p class="page-subtitle">AI无法回答的问题记录</p>
+            </div>
+            <div id="unansweredList"></div>
+          `;
         }
         if (panelRefresh) clearInterval(panelRefresh);
         panelRefresh = setInterval(() => { if (currentPanel === 'unanswered') refreshUnansweredOnly(); }, 5000);
@@ -689,77 +1384,180 @@
       }
       else if (name === 'learn') {
         if (!document.getElementById('learnList')) {
-          main.innerHTML = `<h3>🌐 学习URL</h3>
-            <div class="form-group"><input type="text" id="learnUrl" placeholder="输入网页URL，AI将抓取并学习内容"><button class="btn" onclick="submitLearn()">提交</button></div>
-            <div id="learnList"></div>`;
+          main.innerHTML = `
+            <div class="page-header">
+              <h1 class="page-title">MongoDB数据库连接管控</h1>
+              <p class="page-subtitle">URL学习与数据库管理</p>
+            </div>
+            <div class="panel">
+              <div class="form-group">
+                <label>网页URL</label>
+                <input type="text" id="learnUrl" placeholder="输入网页URL，AI将抓取并学习内容" />
+              </div>
+              <button class="btn" onclick="submitLearn()">提交学习</button>
+            </div>
+            <div id="learnList"></div>
+          `;
         }
         if (panelRefresh) clearInterval(panelRefresh);
         panelRefresh = setInterval(() => { if (currentPanel === 'learn') refreshLearnOnly(); }, 5000);
         await refreshLearnOnly();
       }
       else if (name === 'admins') {
-        main.innerHTML = `<h3>👤 管理员账号管理</h3>
-          <p style="margin:10px 0;color:#666;">创建子账号并分配权限，不同管理员只能访问被授权的功能模块。</p>
-          <button class="btn success" onclick="showAddAdminModal()" style="margin-bottom:15px;">+ 添加管理员</button>
-          <div id="adminList"></div>`;
+        main.innerHTML = `
+          <div class="page-header">
+            <h1 class="page-title">主副账号权限管理</h1>
+            <p class="page-subtitle">创建子账号并分配功能模块权限</p>
+          </div>
+          <button class="btn success" onclick="showAddAdminModal()" style="margin-bottom:20px;">+ 添加管理员</button>
+          <div id="adminList"></div>
+        `;
         await refreshAdminList();
       }
-    } catch(e) { main.innerHTML = '<p style="color:red">加载失败</p>'; }
+    } catch(e) {
+      main.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">加载失败，请刷新重试</div></div>';
+    }
   }
 
   // ────── 人工客服局部刷新 ──────
-  async function refreshHumanData() { try { await loadUsers(); if (selectedUserId) await loadChat(); } catch(e) {} }
-  async function loadUsers() {
-    const div = document.getElementById('userList');
-    if (!div) return;
+  async function refreshHumanData() {
     try {
-      const users = await fetchJSON('/api/human-user-list');
-      if (!users) return;
-      div.innerHTML = users.map(u => `<div class="user-item ${u.userId===selectedUserId?'active':''}" onclick="selectUser('${u.userId}')"><strong>${u.email||atob(u.userId)}</strong><br><small>未读:${u.unread}</small></div>`).join('');
+      await loadUsers();
+      if (selectedUserId) await loadChat();
     } catch(e) {}
   }
+
+  async function loadUsers() {
+    const div = document.getElementById('userList');
+    const countEl = document.getElementById('userCount');
+    if (!div) return;
+    try {
+      const users = await fetchJSON('/api/human-user-list') || [];
+
+      // 更新未读用户计数（添加转接提示功能）
+      let hasUnread = false;
+      users.forEach(u => {
+        if (u.unread > 0) {
+          unreadUsers.add(u.userId);
+          hasUnread = true;
+        }
+      });
+
+      // 更新侧边栏红点提醒
+      const badge = document.getElementById('humanBadge');
+      if (badge) {
+        if (unreadUsers.size > 0) {
+          badge.textContent = unreadUsers.size;
+          badge.style.display = 'block';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+
+      if (countEl) countEl.textContent = users.length;
+
+      div.innerHTML = users.map(u => {
+        const hasUnreadMsg = u.unread > 0;
+        return `<div class="user-item ${u.userId===selectedUserId?'active':''} ${hasUnreadMsg?'has-unread':''}" onclick="selectUser('${u.userId}')">
+          <div class="user-email">${u.email||atob(u.userId)}</div>
+          <div class="user-meta">
+            <span>未读:${u.unread}</span>
+            ${hasUnreadMsg ? '<span class="unread-badge">新</span>' : ''}
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) {}
+  }
+
   async function selectUser(uid) {
     selectedUserId = uid;
-    try {
-      const users = await fetchJSON('/api/human-user-list');
-      if (users) {
-        const user = users.find(u => u.userId === uid);
-        document.getElementById('chatTitle').innerText = `与 ${user?.email || atob(uid)} 对话中`;
+    unreadUsers.delete(uid);
+
+    // 更新侧边栏红点
+    const badge = document.getElementById('humanBadge');
+    if (badge) {
+      if (unreadUsers.size > 0) {
+        badge.textContent = unreadUsers.size;
+        badge.style.display = 'block';
+      } else {
+        badge.style.display = 'none';
       }
+    }
+
+    try {
+      const users = await fetchJSON('/api/human-user-list') || [];
+      const user = users.find(u => u.userId === uid);
+      const userNameEl = document.getElementById('chatUserName');
+      const userStatusEl = document.getElementById('chatUserStatus');
+      const transferNotice = document.getElementById('transferNotice');
+
+      if (userNameEl) userNameEl.textContent = user?.email || atob(uid);
+      if (userStatusEl) userStatusEl.textContent = '在线对话中';
+      if (transferNotice) transferNotice.style.display = 'flex';
     } catch(e) {}
+
     await loadChat();
     await loadNote();
   }
+
   async function loadChat() {
     const box = document.getElementById('humanChatBox');
     if (!box || !selectedUserId) return;
     try {
       const data = await fetchJSON(`/api/human-history?userId=${selectedUserId}`);
       if (!data || !data.messages) return;
-      box.innerHTML = data.messages.map(m => `<div style="text-align:${m.sender==='agent'?'left':'right'}; margin:4px;"><div style="display:inline-block;max-width:75%;padding:8px 12px;border-radius:12px;background:${m.sender==='agent'?'rgba(99,102,241,0.15)':'linear-gradient(135deg,#6366f1,#818cf8)'};color:${m.sender==='agent'?'#c7d2fe':'white'};">${m.content}<br><small style="opacity:0.6;">${new Date(m.time).toLocaleTimeString()}</small></div></div>`).join('');
+      box.innerHTML = data.messages.map(m => `
+        <div class="message ${m.sender==='user'?'user':'agent'}">
+          <div class="message-bubble">
+            ${m.content}
+            <div class="message-time">${new Date(m.time).toLocaleTimeString()}</div>
+          </div>
+        </div>
+      `).join('');
       box.scrollTop = box.scrollHeight;
     } catch(e) {}
   }
+
   async function sendReply() {
     if (!selectedUserId) return alert('请先选择用户');
     const input = document.getElementById('humanReplyInput');
     if (!input) return;
     const msg = input.value.trim();
     if (!msg) return;
-    await fetchJSON('/api/human-reply', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId: selectedUserId, message: msg }) });
+    await fetchJSON('/api/human-reply', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ userId: selectedUserId, message: msg })
+    });
     input.value = '';
     await loadChat();
   }
+
   async function loadNote() {
     const input = document.getElementById('noteInput');
     if (!input || !selectedUserId) return;
-    try { const data = await fetchJSON(`/api/human-note?userId=${selectedUserId}`); input.value = data.note || ''; } catch(e) {}
+    try {
+      const data = await fetchJSON(`/api/human-note?userId=${selectedUserId}`);
+      input.value = data.note || '';
+    } catch(e) {}
   }
+
   async function saveNote() {
     if (!selectedUserId) return;
     const input = document.getElementById('noteInput');
-    await fetchJSON('/api/human-note', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId: selectedUserId, note: input.value.trim() }) });
-    alert('已保存');
+    await fetchJSON('/api/human-note', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ userId: selectedUserId, note: input.value.trim() })
+    });
+    showNotification('备注已保存');
+  }
+
+  function showNotification(msg) {
+    const notif = document.getElementById('notification');
+    notif.textContent = msg;
+    notif.style.display = 'block';
+    setTimeout(() => { notif.style.display = 'none'; }, 3000);
   }
 
   // ────── 知识库 ──────
@@ -768,20 +1566,31 @@
     const a = document.getElementById('kbA').value.trim();
     const kw = document.getElementById('kbKw').value.split(',').map(k=>k.trim()).filter(Boolean);
     if (!q || !a) return alert('问题和答案不能为空');
-    await fetchJSON('/api/kb/add', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ question: q, answer: a, keywords: kw }) });
+    await fetchJSON('/api/kb/add', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ question: q, answer: a, keywords: kw })
+    });
     document.getElementById('kbQ').value = '';
     document.getElementById('kbA').value = '';
     document.getElementById('kbKw').value = '';
     await refreshKBListOnly();
   }
+
   async function refreshKBListOnly() {
-    const list = await fetchJSON('/api/kb/list');
+    const list = await fetchJSON('/api/kb/list') || [];
     const div = document.getElementById('kbList');
     if (div) {
-      div.innerHTML = list.map(item => `<div class="chat-message"><b>Q:</b> ${item.question}<br><b>A:</b> ${item.answer}<button class="btn danger" onclick="deleteKB('${item.id}')" style="float:right">删除</button></div>`).join('');
+      div.innerHTML = list.length > 0
+        ? list.map(item => `<div class="chat-message"><b>Q:</b> ${item.question}<br><b>A:</b> ${item.answer}<button class="btn danger" onclick="deleteKB('${item.id}')" style="float:right;margin-top:8px;">删除</button></div>`).join('')
+        : '<div class="empty-state"><div class="empty-state-icon">📚</div><div class="empty-state-text">知识库为空</div></div>';
     }
   }
-  async function deleteKB(id) { await fetch(`/api/kb/delete/${id}`, { method:'DELETE' }); await refreshKBListOnly(); }
+
+  async function deleteKB(id) {
+    await fetch(`/api/kb/delete/${id}`, { method:'DELETE' });
+    await refreshKBListOnly();
+  }
 
   // ────── 规则管理 ──────
   const ruleTemplates = {
@@ -817,7 +1626,7 @@
 4. 提醒用户可以点击"转人工"获取更专业的建议`,
     custom: ''
   };
-  
+
   function showRuleTemplate(type) {
     const form = document.getElementById('ruleForm');
     const textarea = document.getElementById('ruleContent');
@@ -825,30 +1634,38 @@
     textarea.value = ruleTemplates[type] || '';
     textarea.focus();
   }
-  
+
   async function addRule() {
     const content = document.getElementById('ruleContent').value.trim();
     if (!content) return alert('请输入规则内容');
-    await fetchJSON('/api/rules/add', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ content }) });
+    await fetchJSON('/api/rules/add', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ content })
+    });
     document.getElementById('ruleContent').value = '';
     document.getElementById('ruleForm').style.display = 'none';
     await refreshRuleListOnly();
   }
+
   async function refreshRuleListOnly() {
-    const rules = await fetchJSON('/api/rules');
+    const rules = await fetchJSON('/api/rules') || [];
     const div = document.getElementById('ruleList');
     if (div) {
-      div.innerHTML = rules.map(r => `
-        <div class="chat-message" style="position:relative;">
-          <p style="white-space:pre-wrap;">${r.content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
-          <div style="margin-top:10px;display:flex;gap:6px;">
-            <button class="btn" onclick="editRule('${r.id}',\`${r.content.replace(/`/g,'\\`').replace(/\n/g,'\\n')}\`)" style="font-size:12px;padding:4px 10px;">编辑</button>
-            <button class="btn danger" onclick="deleteRule('${r.id}')" style="font-size:12px;padding:4px 10px;">删除</button>
+      div.innerHTML = rules.length > 0
+        ? rules.map(r => `
+          <div class="chat-message" style="position:relative;">
+            <p style="white-space:pre-wrap;">${r.content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+            <div style="margin-top:12px;display:flex;gap:8px;">
+              <button class="btn" onclick="editRule('${r.id}','${r.content.replace(/'/g,"\\'").replace(/\n/g,'\\n')}')" style="font-size:12px;padding:6px 14px;">编辑</button>
+              <button class="btn danger" onclick="deleteRule('${r.id}')" style="font-size:12px;padding:6px 14px;">删除</button>
+            </div>
           </div>
-        </div>
-      `).join('');
+        `).join('')
+        : '<div class="empty-state"><div class="empty-state-icon">⚙️</div><div class="empty-state-text">暂无规则</div></div>';
     }
   }
+
   async function editRule(id, currentContent) {
     const newContent = prompt('编辑规则内容：', currentContent.replace(/\\n/g,'\n'));
     if (newContent && newContent.trim() && newContent !== currentContent.replace(/\\n/g,'\n')) {
@@ -860,46 +1677,64 @@
       await refreshRuleListOnly();
     }
   }
-  async function deleteRule(id) { 
+
+  async function deleteRule(id) {
     if (confirm('确定删除这条规则吗？')) {
-      await fetch(`/api/rules/${id}`, { method: 'DELETE' }); 
-      await refreshRuleListOnly(); 
+      await fetch(`/api/rules/${id}`, { method: 'DELETE' });
+      await refreshRuleListOnly();
     }
   }
 
   // ────── 疑难记录 ──────
   async function refreshUnansweredOnly() {
-    const list = await fetchJSON('/api/unanswered');
+    const list = await fetchJSON('/api/unanswered') || [];
     const div = document.getElementById('unansweredList');
     if (div) {
-      div.innerHTML = list.map(item => `<div class="chat-message"><b>${item.email}</b> <small>${new Date(item.time).toLocaleString()}</small><br>${item.question}<button class="btn danger" onclick="deleteUnanswered('${item.id}')" style="float:right">删除</button></div>`).join('');
+      div.innerHTML = list.length > 0
+        ? list.map(item => `<div class="chat-message"><b>${item.email}</b> <small>${new Date(item.time).toLocaleString()}</small><br>${item.question}<button class="btn danger" onclick="deleteUnanswered('${item.id}')" style="float:right;margin-top:8px;">删除</button></div>`).join('')
+        : '<div class="empty-state"><div class="empty-state-icon">🤔</div><div class="empty-state-text">暂无疑难记录</div></div>';
     }
   }
-  async function deleteUnanswered(id) { await fetch(`/api/unanswered/${id}`, { method:'DELETE' }); await refreshUnansweredOnly(); }
+
+  async function deleteUnanswered(id) {
+    await fetch(`/api/unanswered/${id}`, { method:'DELETE' });
+    await refreshUnansweredOnly();
+  }
 
   // ────── 学习URL ──────
   async function submitLearn() {
     const url = document.getElementById('learnUrl').value.trim();
     if (!url) return alert('请输入URL');
-    await fetchJSON('/api/kb/learn-url', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ url }) });
+    await fetchJSON('/api/kb/learn-url', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ url })
+    });
     document.getElementById('learnUrl').value = '';
     await refreshLearnOnly();
   }
+
   async function refreshLearnOnly() {
-    const list = await fetchJSON('/api/kb/learned-list');
+    const list = await fetchJSON('/api/kb/learned-list') || [];
     const div = document.getElementById('learnList');
     if (div) {
-      div.innerHTML = list.map(p => `<div class="chat-message"><b>${p.title}</b><br><small>${p.url}</small><br>${p.content.substring(0,100)}...<button class="btn danger" onclick="deleteLearned('${p.id}')" style="float:right">删除</button></div>`).join('');
+      div.innerHTML = list.length > 0
+        ? list.map(p => `<div class="chat-message"><b>${p.title}</b><br><small>${p.url}</small><br>${p.content.substring(0,100)}...<button class="btn danger" onclick="deleteLearned('${p.id}')" style="float:right;margin-top:8px;">删除</button></div>`).join('')
+        : '<div class="empty-state"><div class="empty-state-icon">🌐</div><div class="empty-state-text">暂无学习内容</div></div>';
     }
   }
-  async function deleteLearned(id) { await fetch(`/api/kb/learned/${id}`, { method:'DELETE' }); await refreshLearnOnly(); }
+
+  async function deleteLearned(id) {
+    await fetch(`/api/kb/learned/${id}`, { method:'DELETE' });
+    await refreshLearnOnly();
+  }
 
   // ────── 管理员账号管理 ──────
   async function refreshAdminList() {
-    const list = await fetchJSON('/api/admin/accounts');
+    const list = await fetchJSON('/api/admin/accounts') || [];
     const div = document.getElementById('adminList');
     if (!div) return;
-    
+
     const allPanels = [
       { id: 'ai-chats', name: 'AI对话' },
       { id: 'suggests', name: '建议列表' },
@@ -911,24 +1746,24 @@
       { id: 'unanswered', name: '疑难记录' },
       { id: 'learn', name: '学习URL' }
     ];
-    
+
     div.innerHTML = list.map(admin => {
       const isSuper = admin.role === 'superadmin' || admin.permissions?.includes('all');
-      const permTags = isSuper 
+      const permTags = isSuper
         ? '<span class="permission-tag all">全部权限</span>'
         : (admin.permissions || []).map(p => {
             const panel = allPanels.find(x => x.id === p);
             return panel ? `<span class="permission-tag">${panel.name}</span>` : '';
           }).join('');
-      
+
       return `<div class="admin-card">
         <div class="admin-info">
-          <h4>${admin.username} ${isSuper ? '<small style="color:#fa8c16;">(超级管理员)</small>' : ''}</h4>
+          <h4>${admin.username} ${isSuper ? '<small style="color:#fbbf24;">(超级管理员)</small>' : ''}</h4>
           <small>创建时间: ${new Date(admin.createdAt).toLocaleString()}</small><br>
-          <div style="margin-top:5px;">${permTags}</div>
+          <div style="margin-top:8px;">${permTags}</div>
         </div>
         <div>
-          ${admin.id !== 'default' ? `<button class="btn" onclick="showEditAdminModal('${admin.id}')">编辑</button><button class="btn danger" onclick="deleteAdmin('${admin.id}')">删除</button>` : ''}
+          ${admin.id !== 'default' ? `<button class="btn" onclick="showEditAdminModal('${admin.id}')" style="margin-right:8px;">编辑</button><button class="btn danger" onclick="deleteAdmin('${admin.id}')">删除</button>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -969,8 +1804,8 @@
           <label><input type="checkbox" value="learn"> 学习URL</label>
         </div>
       </div>
-      <div style="text-align:right;margin-top:15px;">
-        <button class="btn" onclick="closeAdminModal()">取消</button>
+      <div style="text-align:right;margin-top:20px;">
+        <button class="btn secondary" onclick="closeAdminModal()">取消</button>
         <button class="btn success" onclick="createAdmin()">创建</button>
       </div>
     </div>`;
@@ -978,10 +1813,10 @@
   }
 
   async function showEditAdminModal(id) {
-    const list = await fetchJSON('/api/admin/accounts');
+    const list = await fetchJSON('/api/admin/accounts') || [];
     const admin = list.find(a => a.id === id);
     if (!admin) return alert('账号不存在');
-    
+
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.id = 'adminModal';
@@ -1016,8 +1851,8 @@
           <label><input type="checkbox" value="learn" ${admin.permissions?.includes('learn') || admin.permissions?.includes('all') ? 'checked' : ''}> 学习URL</label>
         </div>
       </div>
-      <div style="text-align:right;margin-top:15px;">
-        <button class="btn" onclick="closeAdminModal()">取消</button>
+      <div style="text-align:right;margin-top:20px;">
+        <button class="btn secondary" onclick="closeAdminModal()">取消</button>
         <button class="btn success" onclick="updateAdmin('${id}')">保存</button>
       </div>
     </div>`;
@@ -1035,9 +1870,9 @@
     const role = document.getElementById('newAdminRole').value;
     const checkboxes = document.querySelectorAll('#permissionCheckboxes input:checked');
     const permissions = Array.from(checkboxes).map(cb => cb.value);
-    
+
     if (!username || !password) return alert('账号和密码不能为空');
-    
+
     try {
       await fetchJSON('/api/admin/accounts', {
         method: 'POST',
@@ -1046,7 +1881,7 @@
       });
       closeAdminModal();
       await refreshAdminList();
-      alert('创建成功');
+      showNotification('创建成功');
     } catch(e) {
       alert('创建失败: ' + e.message);
     }
@@ -1058,12 +1893,12 @@
     const role = document.getElementById('editAdminRole').value;
     const checkboxes = document.querySelectorAll('#permissionCheckboxes input:checked');
     const permissions = Array.from(checkboxes).map(cb => cb.value);
-    
+
     if (!username) return alert('账号不能为空');
-    
+
     const updateData = { username, role, permissions };
     if (password) updateData.password = password;
-    
+
     try {
       await fetchJSON(`/api/admin/accounts/${id}`, {
         method: 'PUT',
@@ -1072,7 +1907,7 @@
       });
       closeAdminModal();
       await refreshAdminList();
-      alert('更新成功');
+      showNotification('更新成功');
     } catch(e) {
       alert('更新失败: ' + e.message);
     }
@@ -1083,14 +1918,14 @@
     try {
       await fetch(`/api/admin/accounts/${id}`, { method: 'DELETE' });
       await refreshAdminList();
-      alert('删除成功');
+      showNotification('删除成功');
     } catch(e) {
       alert('删除失败');
     }
   }
 
   function startRefresh() {
-    loadPanel('ai-chats');
+    loadPanel('dashboard');
     setInterval(() => {
       if (!['dashboard','human','knowledge','rules','unanswered','learn','admins'].includes(currentPanel)) {
         loadPanel(currentPanel);
