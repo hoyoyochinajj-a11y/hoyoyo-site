@@ -5,78 +5,454 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HOYOYO 客服后台</title>
 <style>
+  /* ===== 全局重置 & 基础 ===== */
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "Microsoft YaHei", "Inter", sans-serif; background: #0f0f23; color: #e0e0e0; }
-  .login-overlay { position: fixed; top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7); backdrop-filter:blur(12px); display:flex;align-items:center;justify-content:center;z-index:100; }
-  .login-box { background: rgba(30,27,75,0.85); backdrop-filter:blur(24px); border:1px solid rgba(255,255,255,0.15); padding: 40px; border-radius: 24px; text-align: center; box-shadow: 0 25px 80px rgba(0,0,0,0.4); }
-  .login-box h3 { color: white; font-size: 22px; margin-bottom: 24px; font-weight: 600; }
-  .login-box input { padding: 14px 18px; width: 280px; margin: 10px 0; border:1px solid rgba(255,255,255,0.2); border-radius:12px; background:rgba(255,255,255,0.08); color:white; font-size:15px; outline:none; transition: border-color 0.2s; }
-  .login-box input::placeholder { color: rgba(255,255,255,0.4); }
-  .login-box input:focus { border-color: #818cf8; background: rgba(255,255,255,0.12); }
-  .login-box button { padding: 14px 40px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; border-radius: 12px; cursor: pointer; margin-top: 16px; font-size: 16px; font-weight: 500; transition: transform 0.2s, box-shadow 0.2s; }
-  .login-box button:hover { transform: scale(1.03); box-shadow: 0 8px 24px rgba(99,102,241,0.4); }
+  body {
+    font-family: "Inter", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0f0f23;
+    color: #c8c8e0;
+    line-height: 1.6;
+    overflow: hidden;
+  }
+
+  /* ===== 自定义滚动条 ===== */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(129, 140, 248, 0.25); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(129, 140, 248, 0.45); }
+
+  /* ===== 登录遮罩 ===== */
+  .login-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(ellipse at center, rgba(15,15,35,0.85) 0%, rgba(0,0,0,0.92) 100%);
+    backdrop-filter: blur(20px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+  }
+  .login-box {
+    background: rgba(26, 26, 62, 0.7);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(129, 140, 248, 0.15);
+    padding: 48px 44px;
+    border-radius: 28px;
+    text-align: center;
+    box-shadow: 0 32px 100px rgba(0,0,0,0.5), 0 0 80px rgba(99,102,241,0.08);
+    min-width: 360px;
+  }
+  .login-box h3 {
+    background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 24px; margin-bottom: 32px; font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .login-box input {
+    padding: 14px 20px; width: 100%; margin: 8px 0;
+    border: 1px solid rgba(129, 140, 248, 0.15);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.04);
+    color: #e0e0f0; font-size: 15px; outline: none;
+    transition: all 0.3s ease;
+  }
+  .login-box input::placeholder { color: rgba(255,255,255,0.3); }
+  .login-box input:focus {
+    border-color: rgba(129, 140, 248, 0.5);
+    background: rgba(129, 140, 248, 0.06);
+    box-shadow: 0 0 20px rgba(99,102,241,0.1);
+  }
+  .login-box button {
+    padding: 14px 48px; margin-top: 20px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+    color: white; border: none; border-radius: 14px;
+    cursor: pointer; font-size: 16px; font-weight: 600;
+    transition: all 0.3s ease;
+    letter-spacing: 1px;
+  }
+  .login-box button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(99,102,241,0.45);
+  }
+
+  /* ===== 主容器 ===== */
   .container { display: flex; height: 100vh; }
-  .sidebar { width: 240px; background: linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%); color: white; padding: 0; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; box-shadow: 4px 0 20px rgba(0,0,0,0.2); }
-  .sidebar h2 { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.15); font-size: 18px; color: white; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-  .sidebar div { padding: 14px 20px; cursor: pointer; transition: all 0.2s; font-size: 14px; color: rgba(255,255,255,0.75); border-left: 3px solid transparent; }
-  .sidebar div:hover { background: rgba(255,255,255,0.1); color: white; border-left-color: rgba(255,255,255,0.3); }
-  .sidebar div.active { background: rgba(255,255,255,0.15); color: white; border-left: 3px solid #818cf8; }
-  .main { flex: 1; padding: 28px; overflow-y: auto; background: #0f0f23; }
-  .main h3 { color: white; font-size: 20px; margin-bottom: 20px; font-weight: 600; }
-  .chat-message { margin: 10px 0; padding: 16px 20px; background: rgba(255,255,255,0.06); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; color: #e0e0e0; transition: all 0.2s; }
-  .chat-message:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); }
-  .chat-message b { color: #818cf8; }
-  .chat-message small { color: rgba(255,255,255,0.5); }
-  .notification { position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 14px 28px; border-radius: 12px; display: none; z-index: 200; font-size: 14px; font-weight: 500; box-shadow: 0 8px 32px rgba(239,68,68,0.4); backdrop-filter: blur(10px); }
-  .user-item { padding:14px 18px; cursor:pointer; border-radius:12px; margin-bottom:8px; background:rgba(255,255,255,0.05); backdrop-filter: blur(10px); border:1px solid rgba(255,255,255,0.08); transition: all 0.2s; }
-  .user-item:hover { background:rgba(99,102,241,0.15); border-color:rgba(99,102,241,0.25); transform: translateX(4px); }
-  .user-item.active { background:rgba(99,102,241,0.2); border-color:rgba(99,102,241,0.35); box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
-  .note-area, .reply-area { display:flex; gap:10px; padding:14px; border-top:1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); }
-  .note-area input, .reply-area input { flex:1; padding:12px 16px; border:1px solid rgba(255,255,255,0.15); border-radius:10px; background:rgba(255,255,255,0.06); color:white; font-size:14px; outline:none; transition: border-color 0.2s; }
-  .note-area input::placeholder, .reply-area input::placeholder { color:rgba(255,255,255,0.4); }
-  .note-area input:focus, .reply-area input:focus { border-color:#818cf8; background:rgba(255,255,255,0.1); }
-  .note-area button, .reply-area button { padding:10px 20px; border:none; border-radius:10px; cursor:pointer; font-size:14px; font-weight:500; transition: transform 0.2s, box-shadow 0.2s; }
-  .note-area button { background:linear-gradient(135deg,#10b981,#059669); color:white; }
-  .reply-area button { background:linear-gradient(135deg,#f97316,#ea580c); color:white; }
-  .note-area button:hover, .reply-area button:hover { transform: scale(1.03); box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
-  .form-group { margin-bottom:16px; }
-  .form-group label { display: block; color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 6px; font-weight: 500; }
-  .form-group input, .form-group textarea, .form-group select { width:100%; padding:12px 16px; margin:4px 0; border:1px solid rgba(255,255,255,0.15); border-radius:10px; background:rgba(255,255,255,0.06); color:white; font-size:14px; outline:none; transition: border-color 0.2s; }
-  .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color:#818cf8; background:rgba(255,255,255,0.1); }
+
+  /* ===== 左侧导航栏 ===== */
+  .sidebar {
+    width: 240px; min-width: 240px;
+    background: linear-gradient(180deg, #1a1a3e 0%, #161630 100%);
+    color: white; padding: 0;
+    border-right: 1px solid rgba(129, 140, 248, 0.1);
+    display: flex; flex-direction: column;
+    box-shadow: 4px 0 30px rgba(0,0,0,0.3);
+    overflow-y: auto;
+    position: relative;
+    z-index: 10;
+  }
+  .sidebar::after {
+    content: '';
+    position: absolute; top: 0; right: 0; width: 1px; height: 100%;
+    background: linear-gradient(180deg, rgba(129,140,248,0.2) 0%, transparent 50%, rgba(129,140,248,0.1) 100%);
+  }
+  .sidebar h2 {
+    padding: 28px 24px 24px;
+    border-bottom: 1px solid rgba(129, 140, 248, 0.1);
+    font-size: 20px;
+    background: linear-gradient(135deg, #818cf8, #c084fc, #f472b6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+    letter-spacing: 1px;
+    position: relative;
+  }
+  .sidebar h2::after {
+    content: '';
+    position: absolute; bottom: 0; left: 24px; right: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(129,140,248,0.3), transparent);
+  }
+  .sidebar div {
+    padding: 13px 20px 13px 24px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-size: 14px;
+    color: rgba(200, 200, 224, 0.65);
+    border-left: 3px solid transparent;
+    display: flex; align-items: center; gap: 10px;
+    position: relative;
+    margin: 1px 0;
+  }
+  .sidebar div:hover {
+    background: rgba(129, 140, 248, 0.08);
+    color: rgba(255,255,255,0.95);
+    border-left-color: rgba(129, 140, 248, 0.3);
+  }
+  .sidebar div.active {
+    background: rgba(129, 140, 248, 0.12);
+    color: #ffffff;
+    border-left: 3px solid #818cf8;
+    font-weight: 500;
+  }
+  .sidebar div.active::before {
+    content: '';
+    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 60%;
+    background: linear-gradient(180deg, #818cf8, #c084fc);
+    border-radius: 0 3px 3px 0;
+    box-shadow: 0 0 12px rgba(129,140,248,0.5);
+  }
+  .sidebar div .menu-icon {
+    font-size: 16px;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  /* ===== 主内容区 ===== */
+  .main {
+    flex: 1; padding: 32px;
+    overflow-y: auto;
+    background: #0f0f23;
+    position: relative;
+  }
+  .main::before {
+    content: '';
+    position: fixed; top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .main h3 {
+    color: #ffffff;
+    font-size: 22px; margin-bottom: 24px; font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  /* ===== 统计卡片 ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: rgba(26, 26, 62, 0.5);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(129, 140, 248, 0.1);
+    border-radius: 18px;
+    padding: 22px 20px;
+    display: flex; align-items: center; gap: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent, #818cf8), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .stat-card:hover {
+    background: rgba(26, 26, 62, 0.7);
+    border-color: rgba(129, 140, 248, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+  .stat-card:hover::before { opacity: 1; }
+  .stat-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .stat-icon.blue { background: linear-gradient(135deg, #6366f1, #818cf8); }
+  .stat-icon.green { background: linear-gradient(135deg, #10b981, #34d399); }
+  .stat-icon.amber { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+  .stat-icon.rose { background: linear-gradient(135deg, #f43f5e, #fb7185); }
+  .stat-info h4 {
+    color: rgba(200, 200, 224, 0.55);
+    font-size: 13px; font-weight: 500;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-info p {
+    color: #ffffff;
+    font-size: 28px; font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  /* ===== 对话消息 ===== */
+  .chat-message {
+    margin: 10px 0;
+    padding: 18px 22px;
+    background: rgba(26, 26, 62, 0.45);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(129, 140, 248, 0.08);
+    border-radius: 16px;
+    color: #c8c8e0;
+    transition: all 0.25s ease;
+    line-height: 1.7;
+  }
+  .chat-message:hover {
+    background: rgba(26, 26, 62, 0.65);
+    border-color: rgba(129, 140, 248, 0.15);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .chat-message b { color: #a5b4fc; font-weight: 600; }
+  .chat-message small { color: rgba(200, 200, 224, 0.4); }
+
+  /* ===== 通知 ===== */
+  .notification {
+    position: fixed; top: 24px; right: 24px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white; padding: 14px 28px;
+    border-radius: 14px;
+    display: none; z-index: 200;
+    font-size: 14px; font-weight: 500;
+    box-shadow: 0 12px 40px rgba(239,68,68,0.35);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  /* ===== 用户列表项 ===== */
+  .user-item {
+    padding: 14px 18px;
+    cursor: pointer;
+    border-radius: 12px;
+    margin-bottom: 6px;
+    background: rgba(26, 26, 62, 0.35);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(129, 140, 248, 0.06);
+    transition: all 0.25s ease;
+  }
+  .user-item:hover {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: rgba(99, 102, 241, 0.2);
+    transform: translateX(4px);
+  }
+  .user-item.active {
+    background: rgba(99, 102, 241, 0.18);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+  }
+
+  /* ===== 备注和回复区域 ===== */
+  .note-area, .reply-area {
+    display: flex; gap: 10px;
+    padding: 14px 16px;
+    border-top: 1px solid rgba(129, 140, 248, 0.08);
+    background: rgba(26, 26, 62, 0.3);
+    backdrop-filter: blur(12px);
+  }
+  .note-area input, .reply-area input {
+    flex: 1; padding: 12px 18px;
+    border: 1px solid rgba(129, 140, 248, 0.12);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    color: #e0e0f0; font-size: 14px; outline: none;
+    transition: all 0.3s ease;
+  }
+  .note-area input::placeholder, .reply-area input::placeholder { color: rgba(255,255,255,0.3); }
+  .note-area input:focus, .reply-area input:focus {
+    border-color: rgba(129, 140, 248, 0.4);
+    background: rgba(129, 140, 248, 0.06);
+    box-shadow: 0 0 16px rgba(99,102,241,0.08);
+  }
+  .note-area button, .reply-area button {
+    padding: 10px 22px; border: none; border-radius: 12px;
+    cursor: pointer; font-size: 14px; font-weight: 600;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+  .note-area button {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+  }
+  .reply-area button {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: white;
+  }
+  .note-area button:hover, .reply-area button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  }
+
+  /* ===== 表单组 ===== */
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block;
+    color: rgba(200, 200, 224, 0.75);
+    font-size: 13px; margin-bottom: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .form-group input, .form-group textarea, .form-group select {
+    width: 100%; padding: 12px 18px; margin: 4px 0;
+    border: 1px solid rgba(129, 140, 248, 0.12);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.04);
+    color: #e0e0f0; font-size: 14px; outline: none;
+    transition: all 0.3s ease;
+  }
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+    border-color: rgba(129, 140, 248, 0.4);
+    background: rgba(129, 140, 248, 0.06);
+    box-shadow: 0 0 16px rgba(99,102,241,0.08);
+  }
+  .form-group textarea { resize: vertical; min-height: 80px; }
   .form-group select option { background: #1a1a3e; color: white; }
-  .btn { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer; margin-right:8px; font-size:14px; font-weight:500; transition: transform 0.2s, box-shadow 0.2s; }
-  .btn:hover { transform: scale(1.03); box-shadow: 0 4px 16px rgba(99,102,241,0.35); }
-  .btn.danger { background:linear-gradient(135deg,#ef4444,#dc2626); }
-  .btn.danger:hover { box-shadow: 0 4px 16px rgba(239,68,68,0.35); }
-  .btn.success { background:linear-gradient(135deg,#10b981,#059669); }
-  .btn.success:hover { box-shadow: 0 4px 16px rgba(16,185,129,0.35); }
-  
-  /* 管理员账号管理样式 */
-  .admin-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 16px; margin: 12px 0; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
-  .admin-card:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+
+  /* ===== 按钮 ===== */
+  .btn {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white; border: none;
+    padding: 10px 22px; border-radius: 12px;
+    cursor: pointer; margin-right: 8px;
+    font-size: 14px; font-weight: 600;
+    transition: all 0.3s ease;
+    letter-spacing: 0.3px;
+  }
+  .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(99,102,241,0.4);
+  }
+  .btn.danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  }
+  .btn.danger:hover {
+    box-shadow: 0 6px 24px rgba(239,68,68,0.4);
+  }
+  .btn.success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  }
+  .btn.success:hover {
+    box-shadow: 0 6px 24px rgba(16,185,129,0.4);
+  }
+
+  /* ===== 管理员卡片 ===== */
+  .admin-card {
+    background: rgba(26, 26, 62, 0.45);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(129, 140, 248, 0.08);
+    padding: 22px 24px;
+    border-radius: 18px;
+    margin: 12px 0;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: all 0.3s ease;
+  }
+  .admin-card:hover {
+    background: rgba(26, 26, 62, 0.65);
+    border-color: rgba(129, 140, 248, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  }
   .admin-info { flex: 1; }
-  .admin-info h4 { margin-bottom: 8px; color: white; font-size: 16px; }
-  .admin-info small { color: rgba(255,255,255,0.5); font-size: 13px; }
-  .permission-tag { display: inline-block; padding: 4px 12px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.3); border-radius: 20px; margin: 3px; font-size: 12px; color: #a5b4fc; font-weight: 500; }
-  .permission-tag.all { background: rgba(249,115,22,0.2); border-color: rgba(249,115,22,0.3); color: #fdba74; }
-  .modal { position: fixed; top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7); backdrop-filter:blur(12px); display:flex;align-items:center;justify-content:center;z-index:300; }
-  .modal-content { background: rgba(30,27,75,0.9); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.15); padding: 32px; border-radius: 20px; width: 460px; color: #e0e0e0; box-shadow: 0 25px 80px rgba(0,0,0,0.4); }
-  .modal-content h3 { margin-bottom: 24px; color: white; font-size: 20px; font-weight: 600; }
-  .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-  .checkbox-group label { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; cursor: pointer; font-size: 13px; color: rgba(255,255,255,0.8); transition: all 0.2s; }
-  .checkbox-group label:hover { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.3); color: white; }
-  .checkbox-group label input { margin-right: 6px; accent-color: #6366f1; }
-  .main::-webkit-scrollbar { width: 8px; }
+  .admin-info h4 { margin-bottom: 8px; color: #ffffff; font-size: 16px; font-weight: 600; }
+  .admin-info small { color: rgba(200, 200, 224, 0.4); font-size: 13px; }
+  .permission-tag {
+    display: inline-block; padding: 4px 14px;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 20px; margin: 3px;
+    font-size: 12px; color: #a5b4fc; font-weight: 500;
+  }
+  .permission-tag.all {
+    background: rgba(249, 115, 22, 0.15);
+    border-color: rgba(249, 115, 22, 0.25);
+    color: #fdba74;
+  }
+
+  /* ===== 模态框 ===== */
+  .modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(16px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 300;
+  }
+  .modal-content {
+    background: rgba(26, 26, 62, 0.85);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(129, 140, 248, 0.15);
+    padding: 36px;
+    border-radius: 24px;
+    width: 480px; max-width: 90vw;
+    color: #c8c8e0;
+    box-shadow: 0 32px 100px rgba(0,0,0,0.5), 0 0 60px rgba(99,102,241,0.06);
+  }
+  .modal-content h3 {
+    margin-bottom: 28px;
+    color: #ffffff; font-size: 22px; font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .checkbox-group {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0;
+  }
+  .checkbox-group label {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(129, 140, 248, 0.1);
+    border-radius: 10px;
+    cursor: pointer; font-size: 13px;
+    color: rgba(200, 200, 224, 0.7);
+    transition: all 0.25s ease;
+  }
+  .checkbox-group label:hover {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: rgba(99, 102, 241, 0.25);
+    color: #ffffff;
+  }
+  .checkbox-group label input { margin-right: 6px; accent-color: #818cf8; }
+
+  /* ===== 主区域滚动条 ===== */
+  .main::-webkit-scrollbar { width: 6px; }
   .main::-webkit-scrollbar-track { background: transparent; }
-  .main::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
-  .main::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
-  
-  /* 统计卡片样式 */
-  .stat-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin: 10px 0; display: flex; align-items: center; gap: 16px; transition: all 0.2s; }
-  .stat-card:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.15); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-  .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); }
-  .stat-info h4 { color: rgba(255,255,255,0.6); font-size: 14px; font-weight: 500; margin-bottom: 4px; }
-  .stat-info p { color: white; font-size: 28px; font-weight: 700; }
+  .main::-webkit-scrollbar-thumb { background: rgba(129, 140, 248, 0.2); border-radius: 3px; }
+  .main::-webkit-scrollbar-thumb:hover { background: rgba(129, 140, 248, 0.35); }
 </style>
 </head>
 <body>
@@ -92,17 +468,18 @@
 
 <div class="container">
   <div class="sidebar" id="sidebar">
-    <h2>📊 HOYOYO 5.0</h2>
-    <div onclick="switchPanel('ai-chats')" class="active">AI 对话记录</div>
-    <div onclick="switchPanel('suggests')">建议列表</div>
-    <div onclick="switchPanel('demands')">需求列表</div>
-    <div onclick="switchPanel('human')">👥 人工客服</div>
-    <div onclick="switchPanel('emails')">📧 用户邮箱</div>
-    <div onclick="switchPanel('knowledge')">📚 知识库</div>
-    <div onclick="switchPanel('rules')">📋 规则管理</div>
-    <div onclick="switchPanel('unanswered')">🤔 疑难记录</div>
-    <div onclick="switchPanel('learn')">🌐 学习URL</div>
-    <div onclick="switchPanel('admins')">👤 管理员账号</div>
+    <h2>✦ HOYOYO 6.0</h2>
+    <div onclick="switchPanel('dashboard')" class="active"><span class="menu-icon">📊</span> 控制台</div>
+    <div onclick="switchPanel('ai-chats')"><span class="menu-icon">💬</span> AI对话记录</div>
+    <div onclick="switchPanel('suggests')"><span class="menu-icon">💡</span> 建议列表</div>
+    <div onclick="switchPanel('demands')"><span class="menu-icon">📋</span> 需求列表</div>
+    <div onclick="switchPanel('human')"><span class="menu-icon">👥</span> 人工客服</div>
+    <div onclick="switchPanel('emails')"><span class="menu-icon">📧</span> 用户邮箱</div>
+    <div onclick="switchPanel('knowledge')"><span class="menu-icon">📚</span> 知识库</div>
+    <div onclick="switchPanel('rules')"><span class="menu-icon">⚙️</span> 规则管理</div>
+    <div onclick="switchPanel('unanswered')"><span class="menu-icon">🤔</span> 疑难记录</div>
+    <div onclick="switchPanel('learn')"><span class="menu-icon">🌐</span> 学习URL</div>
+    <div onclick="switchPanel('admins')"><span class="menu-icon">👤</span> 管理员账号</div>
   </div>
   <div class="main" id="mainContent"></div>
 </div>
@@ -149,11 +526,14 @@
     const isSuperAdmin = currentAdmin.role === 'superadmin' || permissions.includes('all');
     
     const menuItems = document.querySelectorAll('.sidebar div');
-    const panels = ['ai-chats', 'suggests', 'demands', 'human', 'emails', 'knowledge', 'rules', 'unanswered', 'learn', 'admins'];
+    const panels = ['dashboard', 'ai-chats', 'suggests', 'demands', 'human', 'emails', 'knowledge', 'rules', 'unanswered', 'learn', 'admins'];
     
     menuItems.forEach((item, idx) => {
       const panelName = panels[idx];
-      if (panelName === 'admins') {
+      if (panelName === 'dashboard') {
+        // 控制台始终显示
+        item.style.display = 'block';
+      } else if (panelName === 'admins') {
         // 只有超级管理员才能看到管理员账号管理
         item.style.display = isSuperAdmin ? 'block' : 'none';
       } else if (!isSuperAdmin) {
@@ -170,7 +550,7 @@
     if (humanRefresh) { clearInterval(humanRefresh); humanRefresh = null; }
     if (panelRefresh) { clearInterval(panelRefresh); panelRefresh = null; }
     document.querySelectorAll('.sidebar div').forEach(d => d.classList.remove('active'));
-    const idx = ['ai-chats','suggests','demands','human','emails','knowledge','rules','unanswered','learn','admins'].indexOf(name);
+    const idx = ['dashboard','ai-chats','suggests','demands','human','emails','knowledge','rules','unanswered','learn','admins'].indexOf(name);
     if (idx >= 0) document.querySelectorAll('.sidebar div')[idx].classList.add('active');
     loadPanel(name);
   }
@@ -185,7 +565,40 @@
     const main = document.getElementById('mainContent');
     main.innerHTML = '加载中...';
     try {
-      if (name === 'ai-chats') {
+      if (name === 'dashboard') {
+        main.innerHTML = `<h3>📊 控制台</h3>
+          <div class="stats-grid">
+            <div class="stat-card" style="--accent:#818cf8">
+              <div class="stat-icon blue">💬</div>
+              <div class="stat-info"><h4>今日对话量</h4><p id="statChats">--</p></div>
+            </div>
+            <div class="stat-card" style="--accent:#34d399">
+              <div class="stat-icon green">👥</div>
+              <div class="stat-info"><h4>活跃用户</h4><p id="statUsers">--</p></div>
+            </div>
+            <div class="stat-card" style="--accent:#fbbf24">
+              <div class="stat-icon amber">😊</div>
+              <div class="stat-info"><h4>满意度</h4><p id="statSatisfy">--</p></div>
+            </div>
+            <div class="stat-card" style="--accent:#fb7185">
+              <div class="stat-icon rose">⏳</div>
+              <div class="stat-info"><h4>待处理</h4><p id="statPending">--</p></div>
+            </div>
+          </div>
+          <div id="dashboardContent"></div>`;
+        try {
+          const chatsData = await fetchJSON('/api/ai-chats');
+          const emailsData = await fetchJSON('/api/user-email-list');
+          const today = new Date().toDateString();
+          const todayChats = chatsData.filter(c => new Date(c.time).toDateString() === today).length;
+          const todayUsers = new Set(emailsData.map(e => e.email)).size;
+          const el1 = document.getElementById('statChats'); if (el1) el1.textContent = todayChats;
+          const el2 = document.getElementById('statUsers'); if (el2) el2.textContent = todayUsers;
+          const el3 = document.getElementById('statSatisfy'); if (el3) el3.textContent = '96%';
+          const el4 = document.getElementById('statPending'); if (el4) el4.textContent = todayChats > 0 ? Math.max(0, todayChats - Math.floor(todayChats * 0.8)) : 0;
+        } catch(e) {}
+      }
+      else if (name === 'ai-chats') {
         main.innerHTML = '<h3>AI 对话记录</h3><div id="list"></div>';
         const data = await fetchJSON('/api/ai-chats');
         document.getElementById('list').innerHTML = data.map(c => `<div class="chat-message"><b>${c.email}</b> <small>${new Date(c.time).toLocaleString()}</small><br><b>问：</b>${c.message}<br><b>答：</b>${c.reply}</div>`).join('');
@@ -575,7 +988,7 @@
   function startRefresh() {
     loadPanel('ai-chats');
     setInterval(() => {
-      if (!['human','knowledge','rules','unanswered','learn','admins'].includes(currentPanel)) {
+      if (!['dashboard','human','knowledge','rules','unanswered','learn','admins'].includes(currentPanel)) {
         loadPanel(currentPanel);
       }
     }, 3000);

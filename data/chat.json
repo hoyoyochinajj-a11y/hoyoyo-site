@@ -4,5 +4,11 @@
     "message": "你好",
     "reply": "您的问题我需要一点时间确认，您也可以直接访问帮助中心：https://cn.hoyoyo.com/help~index.html 或点击“转人工”哦~",
     "time": "2026-05-19T12:27:35.036Z"
+  },
+  {
+    "email": "test@test.com",
+    "message": "你好",
+    "reply": "您的问题我需要一点时间确认，您也可以直接访问帮助中心：https://cn.hoyoyo.com/help~index.html 或点击\"转人工\"哦~",
+    "time": "2026-05-20T09:52:38.089Z"
   }
 ]
