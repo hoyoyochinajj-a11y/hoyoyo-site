@@ -201,16 +201,14 @@
 
   <div class="cw-messages" id="chatBox"></div>
 
-  <div class="cw-quick" id="quickReplies">
+  <div class="cw-quick" id="quickReplies" style="display:flex;justify-content:center;gap:10px;">
     <button class="quick-chip" onclick="sendQuick('产品咨询')">产品咨询</button>
-    <button class="quick-chip" onclick="sendQuick('订单查询')">订单查询</button>
     <button class="quick-chip" onclick="sendQuick('物流查询')">物流查询</button>
-  </div>
-
-  <div class="cw-actions">
-    <button class="action-btn" id="humanBtn" onclick="toggleHuman()">👤 转人工客服</button>
+    <button class="action-btn" id="humanBtn" onclick="toggleHuman()">👤 转人工</button>
     <button class="action-btn" onclick="openSuggest()">💡 提建议</button>
   </div>
+
+
 
   <div class="cw-input-area">
     <div class="cw-input-wrapper">
@@ -387,9 +385,10 @@
   }
 
   async function pollHumanMessages() {
-    if (!isHumanMode || !userId) return;
+    const currentUserId = getUserId();
+    if (!isHumanMode || !currentUserId) return;
     try {
-      const res = await fetch(`/api/human-history?userId=${encodeURIComponent(userId)}`);
+      const res = await fetch(`/api/human-history?userId=${encodeURIComponent(currentUserId)}`);
       if (!res.ok) throw new Error('fetch failed');
       const data = await res.json();
       if (data.messages && data.messages.length > 0) {
