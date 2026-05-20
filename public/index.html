@@ -200,6 +200,7 @@
   const sendBtn = document.getElementById('sendBtn');
   let isHumanMode = false;
   let humanPollTimer = null;
+  let lastHumanMsgCount = 0;
   const userId = userEmail ? btoa(userEmail) : '';
 
   function linkify(text) {
@@ -325,14 +326,13 @@
       const res = await fetch(`/api/human-history?userId=${userId}`);
       const data = await res.json();
       if (data.messages && data.messages.length > 0) {
-        const lastMsg = data.messages[data.messages.length - 1];
-        if (lastMsg.sender === 'agent') {
-          const msgs = chatBox.querySelectorAll('.msg.human-agent .msg-bubble');
-          const lastBubble = msgs.length > 0 ? msgs[msgs.length - 1].textContent.trim() : '';
-          if (lastBubble !== lastMsg.content.trim()) {
-            addBubble('human-agent', lastMsg.content);
+        const newMsgs = data.messages.slice(lastHumanMsgCount);
+        newMsgs.forEach(m => {
+          if (m.sender === 'agent') {
+            addBubble('human-agent', m.content, false);
           }
-        }
+        });
+        lastHumanMsgCount = data.messages.length;
       }
     } catch(e) {}
   }
@@ -360,6 +360,7 @@
       modeTag.className = 'mode-tag human';
       addSysMsg('已转接人工客服');
       addBubble('human-agent', t.humanWelcome);
+      lastHumanMsgCount = 0;
       humanPollTimer = setInterval(pollHumanMessages, 2000);
       pollHumanMessages();
     } else {
